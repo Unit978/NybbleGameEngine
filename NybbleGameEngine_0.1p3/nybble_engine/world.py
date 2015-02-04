@@ -1,9 +1,8 @@
-from abc import abstractmethod
-from abc import ABCMeta
 
 from managers import EntityManager
 from entity import GameObject
 from entity import BoxColliderGameObject
+from systems import *
 
 
 # A world is like a game level. It holds the necessary game objects
@@ -20,6 +19,13 @@ class World (object):
         self.systems = list()
         self.entity_manager = EntityManager()
 
+        # for world behavior
+        self.scripts = list()
+
+        # add the fundamental systems
+        self.add_system(PhysicsSystem())
+        self.add_system(RenderSystem())
+
     @abstractmethod
     def load_scene(self):
         """
@@ -27,12 +33,15 @@ class World (object):
         game objects.
         """
 
-    @abstractmethod
-    def take_input(self, event):
-        """
-        Takes in user input from a peripheral input device
-        such as the mouse or the keyboard.
-        """
+    # Do not override
+    def _take_input(self, event):
+
+        for s in self.scripts:
+            s.take_input(event)
+
+        # run script input
+        for e in self.entity_manager.entities:
+            e.take_input(event)
 
     def create_entity(self):
         return self.entity_manager.create_entity()
@@ -52,12 +61,31 @@ class World (object):
 
     def add_system(self, system):
         system.world = self
-        self.systems.append(system)
+
+        # add to the front - so the physics and render systems are
+        # the last systems to do their logic.
+        self.systems.insert(0, system)
 
     def remove_system(self, system):
         self.systems.remove(system)
+
+    def add_script(self, script):
+        self.scripts.append(script)
+
+    def remove_script(self, script):
+        self.scripts.remove(script)
 
     # Have each system process the entities
     def run(self):
         for s in self.systems:
             s.process(self.entity_manager.entities)
+
+        # run script updates
+        for e in self.entity_manager.entities:
+            if len(e.scripts) != 0:
+                for s in e.scripts:
+                    s.update()
+
+        # world scripts
+        for s in self.scripts:
+            s.update()
