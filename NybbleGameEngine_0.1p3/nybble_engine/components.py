@@ -42,6 +42,11 @@ class RenderComponent (Component):
         self.sprite = image
         self.pivot = pivot
 
+        # the rendering order. 0 is default
+        # lower values render last (use for foreground)
+        # larger values render first (use for background)
+        self.depth = 0
+
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
@@ -54,8 +59,16 @@ class RigidBodyComponent (Component):
         self.mass = m
 
 
-class CollisionBoxComponent (Component):
-    tag = "collision box"
+class Collider(Component):
+    tag = "collider"
+
+    def __init__(self):
+        super(Collider, self).__init__()
+        self.physics_texture = None
+
+
+class CollisionBoxComponent (Collider):
+    tag = "box collider"
 
     def __init__(self, width=0.0, height=0.0):
         super(CollisionBoxComponent, self).__init__()
@@ -65,10 +78,47 @@ class CollisionBoxComponent (Component):
         self.box = Rect(0, 0, width, height)
 
 
+class CircleCollider(Collider):
+    tag = "circle collider"
+
+    def __init__(self, radius=1.0):
+        super(CircleCollider, self).__init__()
+        self.radius = radius
+
+
 # This component simply flags which entity can receive input.
 class InputComponent (Component):
     tag = "input"
 
     def __init__(self):
         super(InputComponent, self).__init__()
+        pass
+
+
+class Script (Component):
+    tag = "script"
+
+    def __init__(self):
+        super(Component, self).__init__()
+        pass
+
+    def take_input(self, event):
+        pass
+
+    # Called at every game iteration. Used for logic.
+    def update(self):
+        pass
+
+
+class BehaviorScript(Script):
+
+    tag = "behavior script"
+
+    def __init__(self):
+        super(Script, self).__init__()
+        self.script_name = ""
+
+    # The physics system calls this function when the belonging
+    # entity of this script collides with another entity's collider
+    def collision_event(self, other_collider):
         pass
