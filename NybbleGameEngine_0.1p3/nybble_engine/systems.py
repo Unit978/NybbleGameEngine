@@ -1,8 +1,8 @@
 
 from abc import abstractmethod
 
-from nybble_engine.components import *
-from nybble_engine.util_math import get_relative_rect_pos
+from components import *
+from util_math import get_relative_rect_pos
 
 import pygame
 

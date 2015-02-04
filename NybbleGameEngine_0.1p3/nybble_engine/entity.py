@@ -1,5 +1,5 @@
-from nybble_engine import components
-from nybble_engine.util_math import Vector2
+import components
+from util_math import Vector2
 
 
 class Entity (object):

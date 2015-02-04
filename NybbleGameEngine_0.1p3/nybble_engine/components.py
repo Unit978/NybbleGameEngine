@@ -1,7 +1,7 @@
 from pygame import Rect
 from abc import ABCMeta
 
-from nybble_engine.util_math import Vector2
+from util_math import Vector2
 
 
 # Base class for all components

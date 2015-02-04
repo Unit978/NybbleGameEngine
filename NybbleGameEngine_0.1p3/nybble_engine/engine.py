@@ -14,8 +14,8 @@ from pygame.locals import *
 from pygame import mixer
 from pygame import font
 
-from nybble_engine.util_math import Vector2
-from nybble_engine.managers import IdManager
+from util_math import Vector2
+from managers import IdManager
 
 # Engine processes the current world, reads input events
 # and handles the main game loop

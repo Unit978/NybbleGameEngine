@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from abc import ABCMeta
 
-from nybble_engine.managers import EntityManager
-from nybble_engine.entity import GameObject
-from nybble_engine.entity import BoxColliderGameObject
+from managers import EntityManager
+from entity import GameObject
+from entity import BoxColliderGameObject
 
 
 # A world is like a game level. It holds the necessary game objects

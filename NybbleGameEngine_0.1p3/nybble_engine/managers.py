@@ -1,5 +1,5 @@
 
-from nybble_engine.entity import *
+from entity import *
 
 
 class EntityManager (object):
