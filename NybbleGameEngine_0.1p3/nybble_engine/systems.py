@@ -28,6 +28,8 @@ class PhysicsSystem (System):
 
     __metaclass__ = ABCMeta
 
+    tag = "physics system"
+
     top = 0
     bottom = 1
     left = 2
@@ -225,11 +227,132 @@ class PhysicsSystem (System):
 # Requires for an entity to have a render and transform component
 # Holds the surface to render images
 class RenderSystem (System):
+
+    tag = "render system"
+
     def __init__(self):
         super(RenderSystem, self).__init__()
 
+        # Dictionary of layers to simulate z-coordinate for
+        # depth rendering.
+        # Everything is added to the key '0' by default
+        self.scene = dict()
+
+        # default layer
+        self.scene[0] = list()
+
+        # Contains the layer enumerations in order from least to greatest
+        self.ordered_layers = list()
+
         # Set up display for rendering.
         self.camera = None
+
+    # This should be called once the initial entities have been made and right
+    # before the main loop starts unless it is necessary to reconstruct a large
+    # portions of entities in the scene.
+    def construct_scene(self, entities):
+
+        # clear the entire layer dictionary
+        self.scene.clear()
+
+        for e in entities:
+            renderer = e.renderer
+            if renderer is not None:
+
+                depth = renderer.depth
+
+                # the depth layer doesn't exist yet
+                if not (depth in self.scene):
+
+                    # create an empty list for that layer
+                    self.scene[depth] = list()
+
+                # add a renderer to that layer
+                self.scene[depth].append(renderer)
+
+        # create the layer order
+        for key in self.scene:
+            self.ordered_layers.append(key)
+
+        # sort the layers
+        self.ordered_layers.sort()
+
+    # Add a new entity to the scene.
+    # Use this during the run time of the game
+    def dynamic_insertion_to_scene(self, entity):
+        renderer = entity.renderer
+        if renderer is not None:
+            depth = renderer.depth
+
+            # layer already exists
+            if depth in self.scene:
+                self.scene[depth].append(renderer)
+
+            # create new layer and re-sort
+            else:
+                self.scene[depth] = [renderer]
+
+                # find where this new layers belongs in the layer order
+                i = 0
+                for layer in self.ordered_layers:
+
+                    # found where to insert the depth
+                    if layer > depth:
+                        self.ordered_layers.insert(i, depth)
+                        return
+                    i += 1
+
+                # the depth is the last layer
+                self.ordered_layers.append(depth)
+
+    # Use this to change the depth of an entity already in the scene.
+    def update_depth(self, entity, new_depth):
+        renderer = entity.renderer
+        if renderer is not None:
+
+            # save old depth and assign the new one
+            old_depth = renderer.depth
+            renderer.depth = new_depth
+
+            # check that it exists in the scene
+            if old_depth in self.scene:
+                renderer_list = self.scene[old_depth]
+
+                # find the renderer's entity
+                i = 0
+                for r in renderer_list:
+
+                    # entity found - remove the renderer for that layer
+                    if r.entity == renderer.entity:
+                        renderer_list.pop(i)
+
+                    i += 1
+
+                # reinsert to the new layer
+                self.dynamic_insertion_to_scene(entity)
+
+            else:
+                print "Renderer had not been added to the scene."
+
+    def remove_from_scene(self, entity):
+        renderer = entity.renderer
+        if renderer is not None:
+
+            depth = renderer.depth
+
+            # check that it exists in the scene
+            if depth in self.scene:
+                renderer_list = self.scene[depth]
+
+                # find the renderer's entity
+                i = 0
+                for r in renderer_list:
+
+                    # entity found - remove the renderer for that layer
+                    if r.entity == renderer.entity:
+                        renderer_list.pop(i)
+
+                    i += 1
 
     def process(self, entities):
         for e in entities:
