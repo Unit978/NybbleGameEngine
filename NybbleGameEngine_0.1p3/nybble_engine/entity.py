@@ -39,8 +39,13 @@ class Entity (object):
 
         self.components.append(component)
 
-    def remove_component(self, component):
-        self.components.remove(component)
+    def remove_component(self, component_tag):
+        i = 0
+        for c in self.components:
+            if c.tag == component_tag:
+                self.components.pop(i)
+                return
+            i += 1
 
     def add_script(self, script):
         self.scripts.append(script)
@@ -67,24 +72,35 @@ class Entity (object):
 
 # A basic game object with a transform, render, box collision, and rigid body components.
 # The image is centered for the render component.
+# A box collider is automatically bounded to the image dimensions.
 # In order to create a game object, the initial sprite image must be specified.
 class GameObject (Entity):
     def __init__(self, image_surface, uuid=0):
         super(GameObject, self).__init__(uuid)
 
-        # Set up pivot for the image
-        pivot = Vector2(image_surface.get_width()/2, image_surface.get_height()/2)
+        img_width = image_surface.get_width()
+        img_height = image_surface.get_height()
 
-        self.add_component(components.Transform())
-        self.add_component(components.Renderer(image_surface, pivot))
-        self.add_component(components.BoxCollider())
+        # Set up pivot for the image
+        pivot = Vector2(img_width/2, img_height/2)
+
+        self.transform = Transform()
+        self.renderer = Renderer(image_surface, pivot)
+        self.collider = components.BoxCollider(img_width, img_height)
+
+        self.add_component(self.transform)
+        self.add_component(self.renderer)
+        self.add_component(self.collider)
 
 
 # A game object with only a transform and collision box components.
 # Could be used to create invisible game barriers
-class BoxColliderGameObject (Entity):
+class BoxColliderObject (Entity):
     def __init__(self, width, height, uuid=0):
-        super(BoxColliderGameObject, self).__init__(uuid)
+        super(BoxColliderObject, self).__init__(uuid)
 
-        self.add_component(components.Transform())
-        self.add_component(components.BoxCollider(width, height))
+        self.transform = Transform()
+        self.collider = components.BoxCollider()
+
+        self.add_component(self.transform)
+        self.add_component(self.collider)
