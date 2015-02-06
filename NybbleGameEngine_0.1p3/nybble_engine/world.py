@@ -1,7 +1,7 @@
 
 from managers import EntityManager
 from entity import GameObject
-from entity import BoxColliderGameObject
+from entity import BoxColliderObject
 from systems import *
 
 
@@ -44,6 +44,7 @@ class World (object):
             for s in e.scripts:
                 s.take_input(event)
 
+    # create an empty entity (no components)
     def create_entity(self):
         return self.entity_manager.create_entity()
 
@@ -52,8 +53,8 @@ class World (object):
         self.entity_manager.add(entity)
         return entity
 
-    def create_box_collider_game_object(self, width, height):
-        entity = BoxColliderGameObject(width, height)
+    def create_box_collider_object(self, width, height):
+        entity = BoxColliderObject(width, height)
         self.entity_manager.add(entity)
         return entity
 
