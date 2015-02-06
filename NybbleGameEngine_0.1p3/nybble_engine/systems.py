@@ -41,18 +41,18 @@ class PhysicsSystem (System):
     def process(self, entities):
         for eA in entities:
 
-            transform_a = eA.get_component(TransformComponent.tag)
-            coll_comp_a = eA.get_component(CollisionBoxComponent.tag)
-            rigid_body_a = eA.get_component(RigidBodyComponent.tag)
+            transform_a = eA.get_component(Transform.tag)
+            coll_comp_a = eA.get_component(BoxCollider.tag)
+            rigid_body_a = eA.get_component(RigidBody.tag)
 
             if coll_comp_a is not None and rigid_body_a is not None:
 
                 # Find another entity that it may collide with
                 for eB in entities:
 
-                    transform_b = eB.get_component(TransformComponent.tag)
-                    coll_comp_b = eB.get_component(CollisionBoxComponent.tag)
-                    rigid_body_b = eB.get_component(RigidBodyComponent.tag)
+                    transform_b = eB.get_component(Transform.tag)
+                    coll_comp_b = eB.get_component(BoxCollider.tag)
+                    rigid_body_b = eB.get_component(RigidBody.tag)
 
                     # Check that coll_comp_b is valid and that coll_comp_a is not colliding with itself
                     if coll_comp_b is not None and eA is not eB:
@@ -77,8 +77,8 @@ class PhysicsSystem (System):
     def bounce(rigid_a, coll_comp_a, rigid_b, coll_comp_b):
 
         # Obtain necessary components
-        transform_a = coll_comp_a.entity.get_component(TransformComponent.tag)
-        transform_b = coll_comp_b.entity.get_component(TransformComponent.tag)
+        transform_a = coll_comp_a.entity.get_component(Transform.tag)
+        transform_b = coll_comp_b.entity.get_component(Transform.tag)
 
         position_a = transform_a.position
         position_b = transform_b.position
@@ -354,26 +354,59 @@ class RenderSystem (System):
 
                     i += 1
 
-    def process(self, entities):
-        for e in entities:
+    def render_scene(self):
 
-            # Obtain the proper components.
-            render_comp = e.get_component(RenderComponent.tag)
-            transform_comp = e.get_component(TransformComponent.tag)
+        # Iterate through each layer in the scene in order
+        for layer in self.ordered_layers:
 
-            # Components found.
-            if transform_comp is not None:
-                if render_comp is not None:
+            renderer_list = self.scene[layer]
+
+            for renderer in renderer_list:
+
+                # access the transform
+                entity = renderer.entity
+                transform = entity.transform
+
+                # transform exists
+                if transform is not None:
 
                     # Center it around the image pivot
-                    position = transform_comp.position - render_comp.pivot
+                    position = transform.position - renderer.pivot
 
                     # Offset image position with the camera
                     if self.camera is not None:
                         position -= self.camera.position
 
                     display = self.world.engine.display
-                    display.blit(render_comp.sprite, (position.x, position.y))
+                    display.blit(renderer.sprite, (position.x, position.y))
+
+                else:
+                    print "Renderer has no transform associated."
+
+    def process(self, entities):
+
+        self.render_scene()
+
+        for e in entities:
+
+            # Obtain the proper components.
+            #render_comp = e.get_component(Renderer.tag)
+            transform_comp = e.get_component(Transform.tag)
+
+            # Components found.
+            if transform_comp is not None:
+                #if render_comp is not None:
+
+
+                    # # Center it around the image pivot
+                    # position = transform_comp.position - render_comp.pivot
+                    #
+                    # # Offset image position with the camera
+                    # if self.camera is not None:
+                    #     position -= self.camera.position
+                    #
+                    # display = self.world.engine.display
+                    # display.blit(render_comp.sprite, (position.x, position.y))
 
                 # ------- Debug info -------- #
 
@@ -382,8 +415,8 @@ class RenderSystem (System):
                     x = transform_comp.position.x
                     y = transform_comp.position.y
 
-                    collider = e.get_component(CollisionBoxComponent.tag)
-                    rigid_body = e.get_component(RigidBodyComponent.tag)
+                    collider = e.get_component(BoxCollider.tag)
+                    rigid_body = e.get_component(RigidBody.tag)
 
                     if rigid_body is not None:
 
