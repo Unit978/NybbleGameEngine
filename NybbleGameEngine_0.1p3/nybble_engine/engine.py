@@ -16,6 +16,7 @@ from pygame import font
 
 from util_math import Vector2
 from managers import IdManager
+from systems import RenderSystem
 
 # Engine processes the current world, reads input events
 # and handles the main game loop
@@ -57,6 +58,16 @@ class Engine:
 
         # load the scene of the world before running
         self.world.load_scene()
+
+        render_system = self.world.get_system(RenderSystem.tag)
+
+        # failed to obtain the render system
+        if render_system is None:
+            print "Error. Render system does not exist in the world."
+            return
+
+        # construct the scene order from the initial entities
+        render_system.construct_scene(self.world.entity_manager.entities)
 
         while True:
 
