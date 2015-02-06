@@ -95,7 +95,7 @@ class InputComponent (Component):
         super(InputComponent, self).__init__()
 
 
-class Script (Component):
+class Script:
     tag = "script"
 
     def __init__(self, script_name):
