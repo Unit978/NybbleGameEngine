@@ -57,6 +57,11 @@ class World (object):
         return entity
 
     def destroy_entity(self, entity):
+
+        # remove the entity from the scene
+        render_system = self.get_system(RenderSystem.tag)
+        render_system.remove_from_scene(entity)
+
         self.entity_manager.remove_entity(entity)
 
     def add_system(self, system):
@@ -68,6 +73,12 @@ class World (object):
 
     def remove_system(self, system):
         self.systems.remove(system)
+
+    def get_system(self, tag):
+        for system in self.systems:
+            if system.tag == tag:
+                return system
+        return None
 
     def add_script(self, script):
         self.scripts.append(script)
