@@ -234,6 +234,7 @@ class PhysicsSystem (System):
             # translate to the left
             transform_a.position.x -= delta
 
+
 # Requires for an entity to have a render and transform component
 # Holds the surface to render images
 class RenderSystem (System):
