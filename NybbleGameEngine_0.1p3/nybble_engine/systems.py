@@ -45,7 +45,7 @@ class PhysicsSystem (System):
     def process(self, entities):
 
         # empty the collision queue
-        del PhysicsSystem.collision_queue[:]
+        PhysicsSystem.collision_queue.clear()
 
         for eA in entities:
 
@@ -288,6 +288,9 @@ class RenderSystem (System):
         # sort the layers
         self.ordered_layers.sort()
 
+        # have the greater values be rendered first (z-coordinate simulation)
+        self.ordered_layers.reverse()
+
     # Add a new entity to the scene.
     # Use this during the run time of the game
     def dynamic_insertion_to_scene(self, entity):
@@ -401,23 +404,11 @@ class RenderSystem (System):
         for e in entities:
 
             # Obtain the proper components.
-            #render_comp = e.get_component(Renderer.tag)
             transform = e.transform
 
             # Components found.
             if transform is not None:
-                #if render_comp is not None:
-
-
-                    # # Center it around the image pivot
-                    # position = transform_comp.position - render_comp.pivot
-                    #
-                    # # Offset image position with the camera
-                    # if self.camera is not None:
-                    #     position -= self.camera.position
-                    #
-                    # display = self.world.engine.display
-                    # display.blit(render_comp.sprite, (position.x, position.y))
+                display = self.world.engine.display
 
                 # ------- Debug info -------- #
 

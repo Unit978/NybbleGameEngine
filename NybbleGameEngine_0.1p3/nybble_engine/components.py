@@ -100,6 +100,7 @@ class Script (object):
 
     def __init__(self, script_name):
         self.script_name = script_name
+        self.entity = None
 
     def take_input(self, event):
         pass

@@ -37,7 +37,7 @@ class Engine:
         if font.get_init() is None:
             print("Failed to initialize the font module.")
 
-        self.fps = 70
+        self.fps = 120
         self.world = None
         self.gui = Gui(self)
 
@@ -76,7 +76,7 @@ class Engine:
                 self.delta_time = 0.0
                 continue
 
-            #print(self.delta_time, " ", timer.get_fps())
+            print(self.delta_time, " ", timer.get_fps())
 
             # Get the initial time in milliseconds of the current frame
             frame_start_time = pygame.time.get_ticks()
@@ -111,7 +111,7 @@ class Engine:
 
                 # pass input events to the world
                 if not self.paused:
-                    self.world.take_input(event)
+                    self.world._take_input(event)
 
             # Run the currently set world
             if not self.paused:

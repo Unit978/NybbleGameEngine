@@ -15,6 +15,7 @@ class Entity (object):
         self.tag = ""
         self.name = ""
         self.scripts = list()
+        self.world = None
 
         # quick access to important components
         self.transform = None
@@ -23,6 +24,9 @@ class Entity (object):
         self.collider = None
 
     def add_component(self, component):
+
+        # link the component
+        component.entity = self
 
         # special components. Variable for quick access
         if isinstance(component, Transform):
@@ -48,6 +52,9 @@ class Entity (object):
             i += 1
 
     def add_script(self, script):
+
+        # link the script
+        script.entity = self
         self.scripts.append(script)
 
     def remove_script(self, script_name):
@@ -100,7 +107,7 @@ class BoxColliderObject (Entity):
         super(BoxColliderObject, self).__init__(uuid)
 
         self.transform = Transform()
-        self.collider = components.BoxCollider()
+        self.collider = components.BoxCollider(width, height)
 
         self.add_component(self.transform)
         self.add_component(self.collider)

@@ -46,15 +46,19 @@ class World (object):
 
     # create an empty entity (no components)
     def create_entity(self):
-        return self.entity_manager.create_entity()
+        e = self.entity_manager.create_entity()
+        e.world = self
+        return e
 
     def create_game_object(self, image_surface):
         entity = GameObject(image_surface)
+        entity.world = self
         self.entity_manager.add(entity)
         return entity
 
     def create_box_collider_object(self, width, height):
         entity = BoxColliderObject(width, height)
+        entity.world = self
         self.entity_manager.add(entity)
         return entity
 
