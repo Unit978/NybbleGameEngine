@@ -93,15 +93,14 @@ class InputComponent (Component):
 
     def __init__(self):
         super(InputComponent, self).__init__()
-        pass
 
 
 class Script (Component):
     tag = "script"
 
-    def __init__(self):
+    def __init__(self, script_name):
         super(Component, self).__init__()
-        pass
+        self.script_name = script_name
 
     def take_input(self, event):
         pass
@@ -110,14 +109,18 @@ class Script (Component):
     def update(self):
         pass
 
+    # compare equality by script name
+    def __eq__(self, other):
+        return self.script_name == other.script_name
+
 
 class BehaviorScript(Script):
 
     tag = "behavior script"
 
-    def __init__(self):
+    def __init__(self, script_name):
         super(Script, self).__init__()
-        self.script_name = ""
+        self.script_name = script_name
 
     # The physics system calls this function when the belonging
     # entity of this script collides with another entity's collider
