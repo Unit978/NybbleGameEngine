@@ -39,9 +39,10 @@ class World (object):
         for s in self.scripts:
             s.take_input(event)
 
-        # run script input
+        # run script input for entities
         for e in self.entity_manager.entities:
-            e.take_input(event)
+            for s in e.scripts:
+                s.take_input(event)
 
     def create_entity(self):
         return self.entity_manager.create_entity()
@@ -93,9 +94,8 @@ class World (object):
 
         # run script updates
         for e in self.entity_manager.entities:
-            if len(e.scripts) != 0:
-                for s in e.scripts:
-                    s.update()
+            for s in e.scripts:
+                s.update()
 
         # world scripts
         for s in self.scripts:
