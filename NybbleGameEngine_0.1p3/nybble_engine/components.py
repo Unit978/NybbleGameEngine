@@ -95,11 +95,10 @@ class InputComponent (Component):
         super(InputComponent, self).__init__()
 
 
-class Script:
+class Script (object):
     tag = "script"
 
     def __init__(self, script_name):
-        super(Component, self).__init__()
         self.script_name = script_name
 
     def take_input(self, event):
