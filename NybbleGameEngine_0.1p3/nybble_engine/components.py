@@ -16,12 +16,12 @@ class Component (object):
 
 
 # Basic transform that handles position , rotation and scale
-class TransformComponent (Component):
+class Transform (Component):
 
     tag = "transform"
 
     def __init__(self, position=Vector2(0.0, 0.0), degrees=0, x_scale=1, y_scale=1):
-        super(TransformComponent, self).__init__()
+        super(Transform, self).__init__()
         self.position = position
         self.degrees = degrees
         self.scale = Vector2(x_scale, y_scale)
@@ -33,11 +33,11 @@ class TransformComponent (Component):
 # Rendering a image centered on a point would require that
 # pivot = Vector2(image.width/2, image.height/2)
 
-class RenderComponent (Component):
+class Renderer (Component):
     tag = "render"
 
     def __init__(self, image, pivot=Vector2(0, 0)):
-        super(RenderComponent, self).__init__()
+        super(Renderer, self).__init__()
         self.original_image = image
         self.sprite = image
         self.pivot = pivot
@@ -45,16 +45,17 @@ class RenderComponent (Component):
         # the rendering order. 0 is default
         # lower values render last (use for foreground)
         # larger values render first (use for background)
+        # USE THE RENDER SYSTEM TO MODIFY THIS VALUE
         self.depth = 0
 
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
-class RigidBodyComponent (Component):
+class RigidBody (Component):
     tag = "rigid body"
 
     def __init__(self, velocity=Vector2(0.0, 0.0), m=1.0):
-        super(RigidBodyComponent, self).__init__()
+        super(RigidBody, self).__init__()
         self.velocity = velocity
         self.mass = m
 
@@ -67,11 +68,11 @@ class Collider(Component):
         self.physics_texture = None
 
 
-class CollisionBoxComponent (Collider):
+class BoxCollider (Collider):
     tag = "box collider"
 
     def __init__(self, width=0.0, height=0.0):
-        super(CollisionBoxComponent, self).__init__()
+        super(BoxCollider, self).__init__()
         self.box = Rect(0, 0, width, height)
 
     def set_box(self, width, height):
