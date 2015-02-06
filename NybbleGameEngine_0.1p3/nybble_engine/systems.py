@@ -41,29 +41,29 @@ class PhysicsSystem (System):
     def process(self, entities):
         for eA in entities:
 
-            transform_a = eA.get_component(Transform.tag)
-            coll_comp_a = eA.get_component(BoxCollider.tag)
-            rigid_body_a = eA.get_component(RigidBody.tag)
+            transform_a = eA.transform
+            collider_a = eA.collider
+            rigid_body_a = eA.rigid_body
 
-            if coll_comp_a is not None and rigid_body_a is not None:
+            if collider_a is not None and rigid_body_a is not None:
 
                 # Find another entity that it may collide with
                 for eB in entities:
 
-                    transform_b = eB.get_component(Transform.tag)
-                    coll_comp_b = eB.get_component(BoxCollider.tag)
-                    rigid_body_b = eB.get_component(RigidBody.tag)
+                    transform_b = eB.transform
+                    collider_b = eB.collider
+                    rigid_body_b = eB.rigid_body
 
                     # Check that coll_comp_b is valid and that coll_comp_a is not colliding with itself
-                    if coll_comp_b is not None and eA is not eB:
+                    if collider_b is not None and eA is not eB:
 
                         # Get the relative collision box positions to their transforms.
-                        get_relative_rect_pos(transform_a.position, coll_comp_a.box)
-                        get_relative_rect_pos(transform_b.position, coll_comp_b.box)
+                        get_relative_rect_pos(transform_a.position, collider_a.box)
+                        get_relative_rect_pos(transform_b.position, collider_b.box)
 
                         # check for collision
-                        if coll_comp_a.box.colliderect(coll_comp_b.box):
-                            PhysicsSystem.bounce(rigid_body_a, coll_comp_a, rigid_body_b,  coll_comp_b)
+                        if collider_a.box.colliderect(collider_b.box):
+                            PhysicsSystem.bounce(rigid_body_a, collider_a, rigid_body_b,  collider_b)
                             self.collision_event(eA, eB)
 
                 # Move the rigid body
@@ -74,11 +74,11 @@ class PhysicsSystem (System):
     # Basically, they are treated as particles
     # This should be called if there was a detected collision
     @staticmethod
-    def bounce(rigid_a, coll_comp_a, rigid_b, coll_comp_b):
+    def bounce(rigid_a, collider_a, rigid_b, collider_b):
 
         # Obtain necessary components
-        transform_a = coll_comp_a.entity.get_component(Transform.tag)
-        transform_b = coll_comp_b.entity.get_component(Transform.tag)
+        transform_a = collider_a.entity.get_component(Transform.tag)
+        transform_b = collider_b.entity.get_component(Transform.tag)
 
         position_a = transform_a.position
         position_b = transform_b.position
@@ -87,8 +87,8 @@ class PhysicsSystem (System):
         # order to determine which sides of the boxes collide.
         # This is relative to coll_comp_a.
 
-        width = 0.5 * (coll_comp_a.box.width + coll_comp_b.box.width)
-        height = 0.5 * (coll_comp_a.box.height + coll_comp_b.box.height)
+        width = 0.5 * (collider_a.box.width + collider_b.box.width)
+        height = 0.5 * (collider_a.box.height + collider_b.box.height)
 
         # Pay close attention to the operands
         dx = position_b.x - position_a.x
@@ -142,11 +142,11 @@ class PhysicsSystem (System):
             rigid_b.velocity.x *= x_change
             rigid_b.velocity.y *= y_change
 
-            PhysicsSystem.resolve_collision_with_rigid(orientation, transform_a, coll_comp_a, transform_b, coll_comp_b)
+            PhysicsSystem.resolve_collision_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
 
         # collision with another collider only
         else:
-            PhysicsSystem.resolve_collision_with_collider(orientation, transform_a, coll_comp_a, coll_comp_b)
+            PhysicsSystem.resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b)
 
     # No acceleration implemented yet
     def move(self, transform, rigid_body):
@@ -156,11 +156,11 @@ class PhysicsSystem (System):
         transform.position += dt * rigid_body.velocity
 
     @staticmethod
-    def resolve_collision_with_rigid(orient, transform_a, coll_a, transform_b, coll_b):
+    def resolve_collision_with_rigid(orient, transform_a, collider_a, transform_b, collider_b):
         if orient == PhysicsSystem.top:
 
             # amount that coll_comp_a went into coll_comp_b
-            delta = coll_b.box.bottom - coll_a.box.top
+            delta = collider_b.box.bottom - collider_a.box.top
 
             # move coll_comp_a out of coll_comp_b by translating it downwards
             transform_a.position.y += delta
@@ -169,50 +169,50 @@ class PhysicsSystem (System):
             transform_b.position.y -= delta
 
         elif orient == PhysicsSystem.bottom:
-            delta = coll_a.box.bottom - coll_b.box.top
+            delta = collider_a.box.bottom - collider_b.box.top
 
             # translate upwards
             transform_a.position.y -= delta
             transform_b.position.y += delta
 
         elif orient == PhysicsSystem.left:
-            delta = coll_b.box.right - coll_a.box.left
+            delta = collider_b.box.right - collider_a.box.left
 
             # translate to the right
             transform_a.position.x += delta
             transform_b.position.x -= delta
 
         elif orient == PhysicsSystem.right:
-            delta = coll_a.box.right - coll_b.box.left
+            delta = collider_a.box.right - collider_b.box.left
 
             # translate to the left
             transform_a.position.x -= delta
             transform_b.position.x += delta
 
     @staticmethod
-    def resolve_collision_with_collider(orientation, transform_a, coll_comp_a, coll_comp_b):
+    def resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b):
         if orientation == PhysicsSystem.top:
 
             # amount that coll_comp_a went into coll_comp_b
-            delta = coll_comp_b.box.bottom - coll_comp_a.box.top
+            delta = collider_b.box.bottom - collider_a.box.top
 
             # move coll_comp_a out of coll_comp_b by translating it downwards
             transform_a.position.y += delta
 
         elif orientation == PhysicsSystem.bottom:
-            delta = coll_comp_a.box.bottom - coll_comp_b.box.top
+            delta = collider_a.box.bottom - collider_b.box.top
 
             # translate upwards
             transform_a.position.y -= delta
 
         elif orientation == PhysicsSystem.left:
-            delta = coll_comp_b.box.right - coll_comp_a.box.left
+            delta = collider_b.box.right - collider_a.box.left
 
             # translate to the right
             transform_a.position.x += delta
 
         elif orientation == PhysicsSystem.right:
-            delta = coll_comp_a.box.right - coll_comp_b.box.left
+            delta = collider_a.box.right - collider_b.box.left
 
             # translate to the left
             transform_a.position.x -= delta
@@ -391,10 +391,10 @@ class RenderSystem (System):
 
             # Obtain the proper components.
             #render_comp = e.get_component(Renderer.tag)
-            transform_comp = e.get_component(Transform.tag)
+            transform = e.transform
 
             # Components found.
-            if transform_comp is not None:
+            if transform is not None:
                 #if render_comp is not None:
 
 
@@ -412,11 +412,11 @@ class RenderSystem (System):
 
                 # draw collision box
                 if self.world.engine.debug:
-                    x = transform_comp.position.x
-                    y = transform_comp.position.y
+                    x = transform.position.x
+                    y = transform.position.y
 
-                    collider = e.get_component(BoxCollider.tag)
-                    rigid_body = e.get_component(RigidBody.tag)
+                    collider = e.collider
+                    rigid_body = e.rigid_body
 
                     if rigid_body is not None:
 
@@ -430,7 +430,7 @@ class RenderSystem (System):
 
                     if collider is not None:
                         # get relative position to transform
-                        get_relative_rect_pos(transform_comp.position, collider.box)
+                        get_relative_rect_pos(transform.position, collider.box)
 
                         display = self.world.engine.display
 
