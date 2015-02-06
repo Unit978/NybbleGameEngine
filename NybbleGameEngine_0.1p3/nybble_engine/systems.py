@@ -3,6 +3,7 @@ from abc import abstractmethod
 
 from components import *
 from util_math import get_relative_rect_pos
+from collections import deque
 
 import pygame
 
@@ -35,10 +36,17 @@ class PhysicsSystem (System):
     left = 2
     right = 3
 
+    # holds pairs of colliding entities per iteration.
+    collision_queue = deque()
+
     def __init__(self):
         super(PhysicsSystem, self).__init__()
 
     def process(self, entities):
+
+        # empty the collision queue
+        del PhysicsSystem.collision_queue[:]
+
         for eA in entities:
 
             transform_a = eA.transform
@@ -64,7 +72,16 @@ class PhysicsSystem (System):
                         # check for collision
                         if collider_a.box.colliderect(collider_b.box):
                             PhysicsSystem.bounce(rigid_body_a, collider_a, rigid_body_b,  collider_b)
-                            self.collision_event(eA, eB)
+
+                            # add collision event into the queue
+                            PhysicsSystem.collision_queue.append((eA, eB))
+
+                            # call the collision inside the scripts
+                            for s in eA.scripts:
+                                s.collision_event(collider_b)
+
+                            for s in eB.scripts:
+                                s.collision_event(collider_a)
 
                 # Move the rigid body
                 self.move(transform_a, rigid_body_a)
@@ -216,13 +233,6 @@ class PhysicsSystem (System):
 
             # translate to the left
             transform_a.position.x -= delta
-
-    # Implement behavior of what should occur if two objects collide.
-    # For example, if a bullet collides with an enemy then destroy the bullet
-    # and decrease health from the enemy.
-    def collision_event(self, entity_a, entity_b):
-        pass
-
 
 # Requires for an entity to have a render and transform component
 # Holds the surface to render images
