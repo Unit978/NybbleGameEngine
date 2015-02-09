@@ -36,6 +36,8 @@ class PhysicsSystem (System):
     left = 2
     right = 3
 
+    gravity = Vector2(0.0, 500.0)
+
     # holds pairs of colliding entities per iteration.
     collision_queue = deque()
 
@@ -148,27 +150,36 @@ class PhysicsSystem (System):
                 y_change = -1
                 orientation = PhysicsSystem.bottom
 
-        # invert velocities based on collision
-        # apply collision resolution to avoid colliders getting stuck with each other
+        # SUMMARY OF WHAT THE FOLLOWING CODE DOES
 
-        rigid_a.velocity.x *= x_change
-        rigid_a.velocity.y *= y_change
+        # Invert velocities based on collision
+        # Apply collision resolution to avoid colliders getting stuck with each other
+        # Apply collision restitution...
+        #   if A collided with B then apply B's restitution to A
+        # Only bounce with a large enough velocity.
+
+        rigid_a.velocity.x *= x_change * collider_b.restitution
+        rigid_a.velocity.y *= y_change * collider_b.restitution
 
         # collision with rigid body
         if rigid_b is not None:
-            rigid_b.velocity.x *= x_change
-            rigid_b.velocity.y *= y_change
+            rigid_b.velocity.x *= x_change * collider_a.restitution
+            rigid_b.velocity.y *= y_change * collider_a.restitution
 
             PhysicsSystem.resolve_collision_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
 
         # collision with another collider only
         else:
             PhysicsSystem.resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b)
+            pass
 
     # No acceleration implemented yet
     def move(self, transform, rigid_body):
         # time step
         dt = self.world.engine.delta_time
+
+        # apply gravity
+        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
 
         transform.position += dt * rigid_body.velocity
 
@@ -346,7 +357,7 @@ class RenderSystem (System):
                 self.dynamic_insertion_to_scene(entity)
 
             else:
-                print "Renderer had not been added to the scene."
+                print("Renderer had not been added to the scene.")
 
     def remove_from_scene(self, entity):
         renderer = entity.renderer
@@ -395,7 +406,7 @@ class RenderSystem (System):
                     display.blit(renderer.sprite, (position.x, position.y))
 
                 else:
-                    print "Renderer has no transform associated."
+                    print("Renderer has no transform associated.")
 
     def process(self, entities):
 
