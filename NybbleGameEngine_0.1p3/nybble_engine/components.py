@@ -59,13 +59,29 @@ class RigidBody (Component):
         self.velocity = velocity
         self.mass = m
 
+        # disable gravity
+        self.gravity_scale = 0
+
+        #self.fixed_angle = True
+        #self.angular_velocity = Vector2(0, 0)
+        #self.angular_drag = 0
+
 
 class Collider(Component):
     tag = "collider"
 
     def __init__(self):
         super(Collider, self).__init__()
-        self.physics_texture = None
+
+        # A value of 0 means no friction
+        # Higher values means higher frictional force
+        self.dynamic_friction = 0
+        self.static_friction = 0
+
+        # Bouncy-ness of a collider
+        # A value of 0 means no bouncing effect
+        # A value of 1 means completely elastic collision effect
+        self.restitution = 1
 
 
 class BoxCollider (Collider):
