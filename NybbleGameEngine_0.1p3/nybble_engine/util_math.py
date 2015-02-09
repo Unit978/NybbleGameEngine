@@ -103,6 +103,13 @@ class Vector2:
         d = vector_a.magnitude() * vector_b.magnitude()
         return acos(n / d)
 
+    def zero(self):
+        self.x = 0
+        self.y = 0
+
+    def is_zero(self):
+        return self.x == 0 and self.y == 0
+
     def __str__(self):
         return "<" + str(self.x) + ", " + str(self.y) + ">"
 
