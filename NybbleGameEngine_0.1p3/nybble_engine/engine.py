@@ -47,6 +47,8 @@ class Engine:
         self.debug = False
         self.paused = False
 
+        self.print_fps = False
+
     def set_world(self, world):
         world.engine = self
         self.world = world
@@ -63,7 +65,7 @@ class Engine:
 
         # failed to obtain the render system
         if render_system is None:
-            print "Error. Render system does not exist in the world."
+            print("Error. Render system does not exist in the world.")
             return
 
         # construct the scene order from the initial entities
@@ -76,10 +78,11 @@ class Engine:
                 self.delta_time = 0.0
                 continue
 
-            print(self.delta_time, " ", timer.get_fps())
-
             # Get the initial time in milliseconds of the current frame
             frame_start_time = pygame.time.get_ticks()
+
+            if self.print_fps:
+                print("delta time: ", self.delta_time, " FPS: ", timer.get_fps())
 
             if self.world is None:
                 print("Error, the world specified is None.")
@@ -108,6 +111,9 @@ class Engine:
                     # toggle debug mode
                     elif event.key == pygame.K_F12:
                         self.debug = not self.debug
+
+                    elif event.key == pygame.K_F11:
+                        self.print_fps = not self.print_fps
 
                 # pass input events to the world
                 if not self.paused:
