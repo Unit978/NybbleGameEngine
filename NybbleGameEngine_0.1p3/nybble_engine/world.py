@@ -13,9 +13,9 @@ from systems import *
 class World (object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, engine=None):
+    def __init__(self):
         # Reference to the engine that it exists in
-        self.engine = engine
+        self.engine = None
         self.systems = list()
         self.entity_manager = EntityManager()
 
