@@ -622,6 +622,7 @@ class RenderSystem (System):
                         # draw circle to the transparency mask
                         x = int(x)
                         y = int(y)
+                        mass = int(mass)
                         pygame.draw.circle(transparency_mask, (0, 100, 255), (mass, mass), mass)
 
                         # change alpha
