@@ -2,6 +2,7 @@
 from managers import EntityManager
 from entity import GameObject
 from entity import BoxColliderObject
+from entity import CircleColliderObject
 from systems import *
 
 
@@ -58,6 +59,12 @@ class World (object):
 
     def create_box_collider_object(self, width, height):
         entity = BoxColliderObject(width, height)
+        entity.world = self
+        self.entity_manager.add(entity)
+        return entity
+
+    def create_circle_collider_object(self, radius):
+        entity = CircleColliderObject(radius)
         entity.world = self
         self.entity_manager.add(entity)
         return entity
