@@ -38,9 +38,6 @@ class PhysicsSystem (System):
 
     gravity = Vector2(0.0, 500.0)
 
-    # how much two colliders can overlap before resolution is applied
-    collision_epsilon = 5
-
     # holds pairs of colliding entities per iteration.
     collision_queue = deque()
 
@@ -59,6 +56,9 @@ class PhysicsSystem (System):
             rigid_body_a = eA.rigid_body
 
             if collider_a is not None and rigid_body_a is not None:
+
+                # Move the rigid body
+                self._move(transform_a, rigid_body_a)
 
                 # Find another entity that it may collide with
                 for eB in entities:
@@ -87,9 +87,6 @@ class PhysicsSystem (System):
 
                             for s in eB.scripts:
                                 s.collision_event(collider_a)
-
-                # Move the rigid body
-                self.move(transform_a, rigid_body_a)
 
     # Apply bouncing between two simplified rigid bodies. For right now,
     # rigid bodies are entities that do not rotate their collision polygons.
@@ -169,25 +166,24 @@ class PhysicsSystem (System):
             rigid_b.velocity.x *= x_change * collider_a.restitution
             rigid_b.velocity.y *= y_change * collider_a.restitution
 
-            PhysicsSystem.resolve_collision_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
+            PhysicsSystem._resolve_collision_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
 
         # collision with another collider only
         else:
-            PhysicsSystem.resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b)
+            PhysicsSystem._resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b)
 
     # No acceleration implemented yet
-    def move(self, transform, rigid_body):
+    def _move(self, transform, rigid_body):
         # time step
         dt = self.world.engine.delta_time
 
         # apply gravity
-        if rigid_body.gravity_enabled:
-            rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
+        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
 
         transform.position += dt * rigid_body.velocity
 
     @staticmethod
-    def resolve_collision_with_rigid(orient, transform_a, collider_a, transform_b, collider_b):
+    def _resolve_collision_with_rigid(orient, transform_a, collider_a, transform_b, collider_b):
         if orient == PhysicsSystem.top:
 
             # amount that coll_comp_a went into coll_comp_b
@@ -221,7 +217,7 @@ class PhysicsSystem (System):
             transform_b.position.x += delta
 
     @staticmethod
-    def resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b):
+    def _resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b):
         if orientation == PhysicsSystem.top:
 
             # amount that coll_comp_a went into coll_comp_b
@@ -233,16 +229,10 @@ class PhysicsSystem (System):
         elif orientation == PhysicsSystem.bottom:
             delta = collider_a.box.bottom - collider_b.box.top
 
-            #print(delta)
-
-            # disable gravity if delta is very small
-            #if abs(delta) < 2:
-            #    collider_a.entity.rigid_body.gravity_enabled = False
-            #else:
-            #    collider_a.entity.rigid_body.gravity_enabled = True
+            if collider_a.entity.rigid_body.velocity.magnitude() < 50:
+                collider_a.entity.rigid_body.velocity.y = 0
 
             # translate upwards
-            #if abs(delta) > PhysicsSystem.collision_epsilon:
             transform_a.position.y -= delta
 
         elif orientation == PhysicsSystem.left:
@@ -443,6 +433,13 @@ class RenderSystem (System):
                     collider = e.collider
                     rigid_body = e.rigid_body
 
+                    # transform origin crosshair
+                    pygame.draw.line(display, (255, 0, 0), (x-50, y), (x+50, y))
+                    pygame.draw.line(display, (255, 0, 0), (x, y-50), (x, y+50))
+
+                    # draw position vector
+                    pygame.draw.line(display, (50, 50, 50), (0, 0), (x, y))
+
                     if rigid_body is not None:
 
                         # obtain a fraction of the velocity vector
@@ -463,10 +460,3 @@ class RenderSystem (System):
                         pygame.draw.rect(display, (255, 255, 255), collider.box, 1)
                         pygame.draw.circle(display, (0, 255, 0), collider.box.center, 5)
                         pygame.draw.circle(display, (0, 255, 255), collider.box.topleft, 5)
-
-                    # transform origin crosshair
-                    pygame.draw.line(display, (255, 0, 0), (x-50, y), (x+50, y))
-                    pygame.draw.line(display, (255, 0, 0), (x, y-50), (x, y+50))
-
-                    # draw position vector
-                    pygame.draw.line(display, (50, 50, 50), (0, 0), (x, y))
