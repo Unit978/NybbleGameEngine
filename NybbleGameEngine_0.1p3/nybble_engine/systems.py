@@ -38,6 +38,9 @@ class PhysicsSystem (System):
 
     gravity = Vector2(0.0, 500.0)
 
+    # how much two colliders can overlap before resolution is applied
+    collision_epsilon = 5
+
     # holds pairs of colliding entities per iteration.
     collision_queue = deque()
 
@@ -171,7 +174,6 @@ class PhysicsSystem (System):
         # collision with another collider only
         else:
             PhysicsSystem.resolve_collision_with_collider(orientation, transform_a, collider_a, collider_b)
-            pass
 
     # No acceleration implemented yet
     def move(self, transform, rigid_body):
@@ -179,7 +181,8 @@ class PhysicsSystem (System):
         dt = self.world.engine.delta_time
 
         # apply gravity
-        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
+        if rigid_body.gravity_enabled:
+            rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
 
         transform.position += dt * rigid_body.velocity
 
@@ -230,7 +233,16 @@ class PhysicsSystem (System):
         elif orientation == PhysicsSystem.bottom:
             delta = collider_a.box.bottom - collider_b.box.top
 
+            #print(delta)
+
+            # disable gravity if delta is very small
+            #if abs(delta) < 2:
+            #    collider_a.entity.rigid_body.gravity_enabled = False
+            #else:
+            #    collider_a.entity.rigid_body.gravity_enabled = True
+
             # translate upwards
+            #if abs(delta) > PhysicsSystem.collision_epsilon:
             transform_a.position.y -= delta
 
         elif orientation == PhysicsSystem.left:
