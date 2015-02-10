@@ -92,6 +92,22 @@ class PhysicsSystem (System):
                                 collision_occurred = True
                                 PhysicsSystem._circle2circle_response(rigid_body_a, collider_a, rigid_body_b, collider_b)
 
+                        # circle to box
+                        elif collider_a.tag == CircleCollider.tag and collider_b.tag == BoxCollider.tag:
+
+                            # create a temporary box collider associated to A
+                            box_collider_a = BoxCollider(collider_a.radius*2, collider_a.radius*2)
+                            box_collider_a.entity = collider_a.entity
+
+                            # Get the relative collision box positions to their transforms.
+                            get_relative_rect_pos(transform_a.position, box_collider_a.box)
+                            get_relative_rect_pos(transform_b.position, collider_b.box)
+
+                            # check for collision
+                            if box_collider_a.box.colliderect(collider_b.box):
+                                collision_occurred = True
+                                PhysicsSystem._box2box_response(rigid_body_a, box_collider_a, rigid_body_b,  collider_b)
+
                         if collision_occurred:
                             # add collision event into the queue
                             PhysicsSystem.collision_queue.append((eA, eB))
@@ -140,7 +156,7 @@ class PhysicsSystem (System):
         # do collision resolution first
         # collision with rigid body
         if rigid_b is not None:
-            PhysicsSystem._resolve_box2box_with_rigid(transform_a, collider_a, transform_b, collider_b)
+            PhysicsSystem._resolve_circle2circle_with_rigid(transform_a, collider_a, transform_b, collider_b)
 
         # collision with another collider only
         else:
@@ -149,7 +165,7 @@ class PhysicsSystem (System):
         # apply collision response
 
         # find the unit normal of the two circles
-        normal = (transform_b.position - transform_a.position).get_normal()
+        normal = Vector2.get_normal(transform_b.position - transform_a.position)
 
         # find the unit tangent of the circles
         tangent = Vector2(normal.y, normal.x)
@@ -196,13 +212,18 @@ class PhysicsSystem (System):
     def _resolve_circle2circle_with_rigid(transform_a, collider_a, transform_b, collider_b):
 
         # find the unit normal from a to b
-        normal = (transform_b.position - transform_a.position).get_normal()
+        normal_ab = Vector2.get_normal(transform_b.position - transform_a.position)
+        normal_ba = Vector2.get_normal(transform_a.position - transform_b.position)
 
         # point on circle a
-        pa = collider_a.radius * normal
+        pa = collider_a.radius * normal_ab
+
+        # make it relative to the origin of the collider's world
+        pa += collider_a.entity.transform.position
 
         # point on circle b - multiply by -1 since the normal from b to a is the opposite to the normal from a to b
-        pb = collider_b.radius * -1 * normal
+        pb = collider_b.radius * normal_ba
+        pb += collider_b.entity.transform.position
 
         # find the intersecting distance
         overlap = pb - pa
@@ -217,7 +238,7 @@ class PhysicsSystem (System):
     def _resolve_circle2circle_with_collider(transform_a, collider_a, transform_b, collider_b):
 
         # find the unit normal from a to b
-        normal = (transform_b.position - transform_a.position).get_normal()
+        normal = Vector2.get_normal(transform_b.position - transform_a.position)
 
         # point on circle a
         pa = collider_a.radius * normal
@@ -605,6 +626,7 @@ class RenderSystem (System):
                             pygame.draw.circle(display, (0, 255, 255), collider.box.topleft, 5)
 
                         elif collider.tag == CircleCollider.tag:
-                            x = transform.position.x
-                            y = transform.position.y
-                            pygame.draw.circle(display, (255, 255, 255), (x, y), 1)
+                            x = int(transform.position.x)
+                            y = int(transform.position.y)
+                            radius = collider.radius
+                            pygame.draw.circle(display, (255, 255, 255), (x, y), radius, 1)
