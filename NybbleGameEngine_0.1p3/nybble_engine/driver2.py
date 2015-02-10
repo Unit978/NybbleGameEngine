@@ -75,14 +75,16 @@ class PlatformWorld(World):
         self.ball1 = self.create_circle_collider_object(80)
         self.ball1.add_component(RigidBody())
         self.ball1.transform.position = Vector2(10, 300)
-        self.ball1.rigid_body.velocity = Vector2(200, 0)
-        self.ball1.rigid_body.mass = 1
+        self.ball1.rigid_body.velocity = Vector2(300, 0)
+        self.ball1.rigid_body.mass = 20
+        self.ball1.rigid_body.gravity_scale = 1
 
         self.ball2 = self.create_circle_collider_object(50)
         self.ball2.add_component(RigidBody())
         self.ball2.transform.position = Vector2(700, 300)
         self.ball2.rigid_body.velocity = Vector2(-200, 50)
-        self.ball2.rigid_body.mass = 1
+        self.ball2.rigid_body.mass = 10
+        self.ball2.rigid_body.gravity_scale = 1
 
         box_image = pygame.Surface((300, 50)).convert()
         box_image.fill((150, 150, 150))
@@ -112,6 +114,3 @@ class PlatformWorld(World):
 
 engine.set_world(PlatformWorld())
 engine.run()
-
-
-
