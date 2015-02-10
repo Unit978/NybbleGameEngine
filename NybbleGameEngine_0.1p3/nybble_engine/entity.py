@@ -106,8 +106,20 @@ class BoxColliderObject (Entity):
     def __init__(self, width, height, uuid=0):
         super(BoxColliderObject, self).__init__(uuid)
 
-        self.transform = Transform()
+        self.transform = Transform(Vector2(0, 0))
         self.collider = components.BoxCollider(width, height)
+
+        self.add_component(self.transform)
+        self.add_component(self.collider)
+
+
+class CircleColliderObject(Entity):
+
+    def __init__(self, radius, uuid=0):
+        super(CircleColliderObject, self).__init__(uuid)
+
+        self.transform = Transform(Vector2(0, 0))
+        self.collider = components.CircleCollider(radius)
 
         self.add_component(self.transform)
         self.add_component(self.collider)
