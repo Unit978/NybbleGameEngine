@@ -59,8 +59,10 @@ class RigidBody (Component):
         self.velocity = velocity
         self.mass = m
 
-        # disable gravity
+        # gravity scale
         self.gravity_scale = 0
+
+        self.gravity_enabled = False
 
         #self.fixed_angle = True
         #self.angular_velocity = Vector2(0, 0)
