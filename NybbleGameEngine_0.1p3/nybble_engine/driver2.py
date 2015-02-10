@@ -44,6 +44,11 @@ class PlatformWorld(World):
         self.box = None
         self.floor = None
 
+        # walls
+        self.topWall = None
+        self.leftWall = None
+        self.rightWall = None
+
     def load_scene(self):
         w = self.engine.display.get_width()
         h = self.engine.display.get_height()
@@ -84,14 +89,25 @@ class PlatformWorld(World):
         self.box = self.create_game_object(box_image)
         self.box.transform.position = Vector2(200, h - 250)
         self.box.renderer.depth = -5
-        self.box.collider.restitution = 0
+        self.box.collider.restitution = 1
 
         floor_image = pygame.Surface((w, 200)).convert()
         floor_image.fill((50, 50, 50))
 
         self.floor = self.create_game_object(floor_image)
         self.floor.transform.position = Vector2(w/2, h-100)
-        self.floor.collider.restitution = 0
+        self.floor.collider.restitution = 1
+
+        # Create the wall entities and set their collision boxes.
+        # Make these wall thick, so the ball doesn't escape from the level.
+        self.topWall = self.create_box_collider_object(w*2, 200)
+        self.leftWall = self.create_box_collider_object(200, h*2)
+        self.rightWall = self.create_box_collider_object(200, h*2)
+
+        # set up wall positions
+        self.topWall.transform.position = Vector2(w/2, 0-80)
+        self.leftWall.transform.position = Vector2(0, h/2-50)
+        self.rightWall.transform.position = Vector2(w, h/2+50)
 
 
 engine.set_world(PlatformWorld())
