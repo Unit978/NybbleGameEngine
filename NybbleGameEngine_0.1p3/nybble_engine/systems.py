@@ -168,7 +168,7 @@ class PhysicsSystem (System):
         normal = Vector2.get_normal(transform_b.position - transform_a.position)
 
         # find the unit tangent of the circles
-        tangent = Vector2(normal.y, normal.x)
+        tangent = Vector2(-normal.y, normal.x)
 
         # project velocity of A to the normal
         normal_project_a = rigid_a.velocity.dot(normal)
@@ -211,28 +211,23 @@ class PhysicsSystem (System):
     @staticmethod
     def _resolve_circle2circle_with_rigid(transform_a, collider_a, transform_b, collider_b):
 
+        # distance between the two centers of the circles
+        distance = transform_b.position - transform_a.position
+
         # find the unit normal from a to b
-        normal_ab = Vector2.get_normal(transform_b.position - transform_a.position)
-        normal_ba = Vector2.get_normal(transform_a.position - transform_b.position)
+        normal_ab = Vector2.get_normal(distance)
 
-        # point on circle a
-        pa = collider_a.radius * normal_ab
+        # overlapping distance
+        overlap_mag = collider_a.radius + collider_b.radius - distance.magnitude()
+        overlap_mag /= 2
 
-        # make it relative to the origin of the collider's world
-        pa += collider_a.entity.transform.position
-
-        # point on circle b - multiply by -1 since the normal from b to a is the opposite to the normal from a to b
-        pb = collider_b.radius * normal_ba
-        pb += collider_b.entity.transform.position
-
-        # find the intersecting distance
-        overlap = pb - pa
+        overlap_vec = normal_ab * overlap_mag
 
         # resolve circle a by translating it by the value of the overlap
-        transform_a.position += overlap
+        transform_a.position -= overlap_vec
 
         # same resolve for b but in the other direction
-        transform_b.position -= overlap
+        transform_b.position += overlap_vec
 
     @staticmethod
     def _resolve_circle2circle_with_collider(transform_a, collider_a, transform_b, collider_b):
@@ -611,6 +606,29 @@ class RenderSystem (System):
 
                         # draw the velocity vector of the rigid
                         pygame.draw.line(display, (0, 255, 0), (x, y), (xend, yend))
+
+                        # represent mass
+                        # larger circle means more mass
+                        mass = rigid_body.mass
+
+                        # mask surface to match the size of the mass circle
+                        transparency_mask = pygame.Surface((mass*2, mass*2))
+
+                        # fill surface with a color mask and set the color key
+                        color_mask = (123, 54, 33)
+                        transparency_mask.fill(color_mask)
+                        transparency_mask.set_colorkey(color_mask)
+
+                        # draw circle to the transparency mask
+                        x = int(x)
+                        y = int(y)
+                        pygame.draw.circle(transparency_mask, (0, 100, 255), (mass, mass), mass)
+
+                        # change alpha
+                        transparency_mask.set_alpha(100)
+
+                        # draw transparency mask to the display
+                        display.blit(transparency_mask, (x-mass, y-mass))
 
                     # box collider
                     if collider is not None:
