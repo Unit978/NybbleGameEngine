@@ -58,7 +58,7 @@ class PhysicsSystem (System):
             if collider_a is not None and rigid_body_a is not None:
 
                 # Move the rigid body
-                self._move(transform_a, rigid_body_a)
+                self._integrate_motion(transform_a, rigid_body_a)
 
                 # Find another entity that it may collide with
                 for eB in entities:
@@ -82,7 +82,7 @@ class PhysicsSystem (System):
                             # check for collision
                             if collider_a.box.colliderect(collider_b.box):
                                 collision_occurred = True
-                                PhysicsSystem._box2box_response(rigid_body_a, collider_a, rigid_body_b,  collider_b)
+                                PhysicsSystem._box2box_response(rigid_body_a, collider_a, rigid_body_b, collider_b)
 
                         # circle to circle collision
                         elif collider_a.tag == CircleCollider.tag and collider_b.tag == CircleCollider.tag:
@@ -98,15 +98,16 @@ class PhysicsSystem (System):
                             # create a temporary box collider associated to A
                             box_collider_a = BoxCollider(collider_a.radius*2, collider_a.radius*2)
                             box_collider_a.entity = collider_a.entity
+                            box_collider_a.restitution = collider_a.restitution
 
                             # Get the relative collision box positions to their transforms.
                             get_relative_rect_pos(transform_a.position, box_collider_a.box)
                             get_relative_rect_pos(transform_b.position, collider_b.box)
 
                             # check for collision
-                            if box_collider_a.box.colliderect(collider_b.box):
+                            if PhysicsSystem._circle2box_collision(collider_a, collider_b):
                                 collision_occurred = True
-                                PhysicsSystem._box2box_response(rigid_body_a, box_collider_a, rigid_body_b,  collider_b)
+                                PhysicsSystem._box2box_response(rigid_body_a, box_collider_a, rigid_body_b, collider_b)
 
                         if collision_occurred:
                             # add collision event into the queue
@@ -127,6 +128,45 @@ class PhysicsSystem (System):
         denominator = mass_a + mass_b
 
         return numerator / denominator
+
+    # collider a is the circle
+    # collider b is the box
+    @staticmethod
+    def _circle2box_collision(collider_a, collider_b):
+        position_a = collider_a.entity.transform.position
+
+        # Find the closest point on the box to the center of the circle
+        x_closest = position_a.x
+        y_closest = position_a.y
+
+        # Check if left side of the box is closer on the x coordinate
+        if position_a.x < collider_b.box.left:
+            x_closest = collider_b.box.left
+
+        # Check if left side of the box is closer on the x coordinate
+        elif position_a.x > collider_b.box.right:
+            x_closest = collider_b.box.right
+
+        # else --- x coordinate of circle is in between the left and right sides of the box
+
+        # Do the same for the y-coordinate/top and bottom sides of the box
+        if position_a.y < collider_b.box.top:
+            y_closest = collider_b.box.top
+
+        elif position_a.y > collider_b.box.bottom:
+            y_closest = collider_b.box.bottom
+
+        # Collision occurs if the distance from the center of the circle to the closest point on the box
+        # is less than the radius of the circle.
+
+        distance_to_closest = Vector2(x_closest, y_closest)
+
+        distance_to_closest -= collider_a.entity.transform.position
+
+        # square radius
+        r_sq = collider_a.radius * collider_a.radius
+
+        return distance_to_closest.sq_magnitude() < r_sq
 
     @staticmethod
     def _circle2circle_collision(collider_a, collider_b):
@@ -201,11 +241,13 @@ class PhysicsSystem (System):
 
         # create the new velocities
         rigid_a.velocity = normal_a + tangent_a
-        rigid_b.velocity = normal_b + tangent_b
 
         # apply restitution
         rigid_a.velocity *= collider_b.restitution
-        rigid_b.velocity *= collider_a.restitution
+
+        if rigid_b is not None:
+            rigid_b.velocity = normal_b + tangent_b
+            rigid_b.velocity *= collider_a.restitution
 
 
     @staticmethod
@@ -229,23 +271,19 @@ class PhysicsSystem (System):
         # same resolve for b but in the other direction
         transform_b.position += overlap_vec
 
+    # Same as with_rigid() but collider_b's rigid does not exist
     @staticmethod
     def _resolve_circle2circle_with_collider(transform_a, collider_a, transform_b, collider_b):
 
-        # find the unit normal from a to b
-        normal = Vector2.get_normal(transform_b.position - transform_a.position)
+        distance = transform_b.position - transform_a.position
 
-        # point on circle a
-        pa = collider_a.radius * normal
+        normal_ab = Vector2.get_normal(distance)
 
-        # point on circle b - multiply by -1 since the normal from b to a is the opposite to the normal from a to b
-        pb = collider_b.radius * -1 * normal
+        overlap_mag = collider_a.radius + collider_b.radius - distance.magnitude()
+        overlap_mag /= 2
 
-        # find the intersecting distance
-        overlap = pb - pa
-
-        # resolve circle a by translating it by the value of the overlap
-        transform_a.position += overlap
+        overlap_vec = normal_ab * overlap_mag
+        transform_a.position -= overlap_vec
 
     # Apply bouncing between two simplified rigid bodies. For right now,
     # rigid bodies are entities that do not rotate their collision polygons.
@@ -329,16 +367,6 @@ class PhysicsSystem (System):
         rigid_a.velocity.x *= x_change * collider_b.restitution
         rigid_a.velocity.y *= y_change * collider_b.restitution
 
-    # No acceleration implemented yet
-    def _move(self, transform, rigid_body):
-        # time step
-        dt = self.world.engine.delta_time
-
-        # apply gravity
-        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
-
-        transform.position += dt * rigid_body.velocity
-
     @staticmethod
     def _resolve_box2box_with_rigid(orient, transform_a, collider_a, transform_b, collider_b):
         if orient == PhysicsSystem.top:
@@ -403,6 +431,15 @@ class PhysicsSystem (System):
 
             # translate to the left
             transform_a.position.x -= delta
+
+    def _integrate_motion(self, transform, rigid_body):
+        # time step
+        dt = self.world.engine.delta_time
+
+        transform.position += dt * rigid_body.velocity
+
+        # apply gravity
+        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
 
 
 # Requires for an entity to have a render and transform component
@@ -610,6 +647,9 @@ class RenderSystem (System):
                         # represent mass
                         # larger circle means more mass
                         mass = rigid_body.mass
+
+                        # scale down the mass
+                        mass /= 4
 
                         # mask surface to match the size of the mass circle
                         transparency_mask = pygame.Surface((mass*2, mass*2))
