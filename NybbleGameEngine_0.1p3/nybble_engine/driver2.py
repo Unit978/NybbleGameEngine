@@ -50,6 +50,7 @@ class PlatformWorld(World):
         self.rightWall = None
 
     def load_scene(self):
+
         w = self.engine.display.get_width()
         h = self.engine.display.get_height()
         background_image = pygame.Surface((w, h))
@@ -69,8 +70,9 @@ class PlatformWorld(World):
         self.player.add_component(RigidBody())
         self.player.transform.position = Vector2(100, 100)
         self.player.renderer.depth = -10
-        self.player.rigid_body.gravity_scale = 2
+        self.player.rigid_body.gravity_scale = 1
         self.player.add_script(PlayerMovement("player_move"))
+        self.player.collider.restitution = 0.1
 
         self.ball1 = self.create_circle_collider_object(80)
         self.ball1.add_component(RigidBody())
@@ -78,6 +80,7 @@ class PlatformWorld(World):
         self.ball1.rigid_body.velocity = Vector2(300, 0)
         self.ball1.rigid_body.mass = 20
         self.ball1.rigid_body.gravity_scale = 1
+        self.ball1.collider.restitution = 1
 
         self.ball2 = self.create_circle_collider_object(50)
         self.ball2.add_component(RigidBody())
@@ -85,20 +88,21 @@ class PlatformWorld(World):
         self.ball2.rigid_body.velocity = Vector2(-200, 50)
         self.ball2.rigid_body.mass = 10
         self.ball2.rigid_body.gravity_scale = 1
+        self.ball2.collider.restitution = 1
 
         box_image = pygame.Surface((300, 50)).convert()
         box_image.fill((150, 150, 150))
         self.box = self.create_game_object(box_image)
         self.box.transform.position = Vector2(200, h - 250)
         self.box.renderer.depth = -5
-        self.box.collider.restitution = 1
+        self.box.collider.restitution = 0.7
 
         floor_image = pygame.Surface((w, 200)).convert()
         floor_image.fill((50, 50, 50))
 
         self.floor = self.create_game_object(floor_image)
         self.floor.transform.position = Vector2(w/2, h-100)
-        self.floor.collider.restitution = 1
+        self.floor.collider.restitution = 0.7
 
         # Create the wall entities and set their collision boxes.
         # Make these wall thick, so the ball doesn't escape from the level.

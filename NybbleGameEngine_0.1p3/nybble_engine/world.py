@@ -94,6 +94,7 @@ class World (object):
         return None
 
     def add_script(self, script):
+        script.world = self
         self.scripts.append(script)
 
     def remove_script(self, script):

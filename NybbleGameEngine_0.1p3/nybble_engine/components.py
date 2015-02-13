@@ -118,7 +118,6 @@ class Script (object):
 
     def __init__(self, script_name):
         self.script_name = script_name
-        self.entity = None
 
     def take_input(self, event):
         pass
@@ -132,6 +131,16 @@ class Script (object):
         return self.script_name == other.script_name
 
 
+class WorldScript(Script):
+
+    tag = "world script"
+
+    def __init__(self, script_name):
+        super(WorldScript, self).__init__(script_name)
+        self.script_name = script_name
+        self.world = None
+
+
 class BehaviorScript(Script):
 
     tag = "behavior script"
@@ -139,6 +148,7 @@ class BehaviorScript(Script):
     def __init__(self, script_name):
         super(Script, self).__init__()
         self.script_name = script_name
+        self.entity = None
 
     # The physics system calls this function when the belonging
     # entity of this script collides with another entity's collider
