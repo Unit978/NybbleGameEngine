@@ -25,12 +25,6 @@ class PlayerMovement(BehaviorScript):
         elif keys[pygame.K_d]:
             velocity.x = self.h_speed
 
-        elif keys[pygame.K_w]:
-            velocity.y = -self.h_speed
-
-        elif keys[pygame.K_s]:
-            velocity.y = self.h_speed
-
     def take_input(self, event):
 
         if event.type == pygame.KEYDOWN:
