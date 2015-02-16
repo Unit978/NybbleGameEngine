@@ -635,6 +635,11 @@ class RenderSystem (System):
             # Obtain the proper components.
             transform = e.transform
 
+            # update the animation for an entity if possible
+            animator = e.animator
+            if animator is not None:
+                animator._update_animation()
+
             # Components found.
             if transform is not None:
                 display = self.world.engine.display
