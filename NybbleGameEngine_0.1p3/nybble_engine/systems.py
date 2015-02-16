@@ -38,6 +38,9 @@ class PhysicsSystem (System):
 
     gravity = Vector2(0.0, 500.0)
 
+    # This value represents a magnitude of velocity to ignore and treat it as zero
+    ignore_velocity_epsilon = 50
+
     # holds pairs of colliding entities per iteration.
     collision_queue = deque()
 
@@ -347,25 +350,47 @@ class PhysicsSystem (System):
                 y_change = -1
                 orientation = PhysicsSystem.bottom
 
-        # SUMMARY OF WHAT THE FOLLOWING CODE DOES
-
         # Apply collision resolution to avoid colliders getting stuck with each other
-        # Invert velocities based on collision
-        # Apply collision restitution...
-        #   if A collided with B then apply B's restitution to A
-
-        # collision with rigid body
+        # Collision with rigid body
         if rigid_b is not None:
             PhysicsSystem._resolve_box2box_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
-            rigid_b.velocity.x *= x_change * collider_a.restitution
-            rigid_b.velocity.y *= y_change * collider_a.restitution
 
-        # collision with another collider only
+            # FIX restitution application
+            # rigid_b.velocity.x *= collider_a.restitution
+            # rigid_b.velocity.y *= collider_a.restitution
+
+            # Invert velocities according to orientation
+            rigid_b.velocity.x *= x_change
+            rigid_b.velocity.y *= y_change
+
+        # Collision with another collider only
         else:
             PhysicsSystem._resolve_box2box_with_collider(orientation, transform_a, collider_a, collider_b)
 
-        rigid_a.velocity.x *= x_change * collider_b.restitution
-        rigid_a.velocity.y *= y_change * collider_b.restitution
+        # Invert velocity components depending on which side of the boxes hit
+        rigid_a.velocity.x *= x_change
+        rigid_a.velocity.y *= y_change
+
+        # Apply restitution based on the orientation that the boxes hit
+        # and apply frictional forces between the collider's surfaces
+        if orientation == PhysicsSystem.top or orientation == PhysicsSystem.bottom:
+            rigid_a.velocity.y *= collider_b.restitution
+            rigid_a.velocity.x *= collider_b.surface_friction
+
+        elif orientation == PhysicsSystem.left or orientation == PhysicsSystem.right:
+            rigid_a.velocity.x *= collider_b.restitution
+            #rigid_a.velocity.y *= collider_b.surface_friction
+
+        # Zero out velocity components if they are too small in order to avoid
+        # jittery behavior between a moving collider and a static one.
+        if rigid_b is None:
+            if abs(rigid_a.velocity.y) < PhysicsSystem.ignore_velocity_epsilon:
+                if orientation == PhysicsSystem.top or orientation == PhysicsSystem.bottom:
+                    rigid_a.velocity.y = 0
+
+            if abs(rigid_a.velocity.x) < PhysicsSystem.ignore_velocity_epsilon:
+                if orientation == PhysicsSystem.left or orientation == PhysicsSystem.right:
+                    rigid_a.velocity.x = 0
 
     @staticmethod
     def _resolve_box2box_with_rigid(orient, transform_a, collider_a, transform_b, collider_b):
@@ -413,9 +438,6 @@ class PhysicsSystem (System):
 
         elif orientation == PhysicsSystem.bottom:
             delta = collider_a.box.bottom - collider_b.box.top
-
-            if collider_a.entity.rigid_body.velocity.magnitude() < 50:
-                collider_a.entity.rigid_body.velocity.y = 0
 
             # translate upwards
             transform_a.position.y -= delta
