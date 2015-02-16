@@ -248,6 +248,7 @@ class BreakoutWorld (World):
 
             # make the collision box
             brick.collider.box = Rect(0, 0, w, h)
+            brick.collider.restitution = 1
 
             # set the new x coordinate for the next brick to spawn at
             x += brick_width
@@ -274,6 +275,11 @@ class BreakoutWorld (World):
         self.leftWall.transform.position = Vector2(0-50-50, half_h)
         self.rightWall.transform.position = Vector2(half_w*2+50+50, half_h)
 
+        self.topWall.collider.restitution = 1
+        self.bottomWall.collider.restitution = 1
+        self.leftWall.collider.restitution = 1
+        self.rightWall.collider.restitution = 1
+
         # ------- set up player ------- #
         paddle_width = paddle_image.get_width()
         paddle_height = ball_image.get_height()
@@ -288,6 +294,7 @@ class BreakoutWorld (World):
         w = paddle_width+5
         h = paddle_height+10
         self.player.collider.set_box(w, h)
+        self.player.collider.restitution = 1
         self.player.add_script(PlayerBehavior("player behavior"))
 
         # set depth
