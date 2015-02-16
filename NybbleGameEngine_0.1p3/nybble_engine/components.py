@@ -105,6 +105,66 @@ class CircleCollider(Collider):
         self.radius = radius
 
 
+class Animator(Component):
+
+    tag = "animator"
+
+    class Animation:
+
+        def __init__(self):
+
+            # name to identity the animation
+            self.name = "base animation"
+
+            # a list of images
+            self.frames = list()
+
+            # time between frames in seconds
+            self.frame_latency = 1.0
+
+        def add_frame(self, frame):
+            self.frames.append(frame)
+
+    def __init__(self):
+        super(Animator, self).__init__()
+        self.current_animation = None
+
+        # track how much time has passed
+        self.latency_accumulator = 0.0
+
+        # the current frame from the animation
+        self.current_frame_index = 0
+
+    def _update_animation(self):
+
+        anim = self.current_animation
+
+        if anim is not None:
+
+            num_of_frames = len(anim.frames)
+
+            if num_of_frames > 0:
+
+                # time to go to the next frame
+                if self.latency_accumulator > anim.frame_latency:
+
+                    self.current_frame_index += 1
+
+                    # cycle through frames
+                    self.current_frame_index %= num_of_frames
+
+                    # Update the renderer's image to display
+                    index = self.current_frame_index
+                    self.entity.renderer.sprite = anim.frames[index]
+
+                    # reset accumulator
+                    self.latency_accumulator = 0.0
+
+                # increment accumulator
+                dt = self.entity.world.engine.delta_time
+                self.latency_accumulator += dt
+
+
 # This component simply flags which entity can receive input.
 class InputComponent (Component):
     tag = "input"
