@@ -108,6 +108,11 @@ class MyWorld(World):
         self.leftWall = self.create_box_collider_object(200, h*2)
         self.rightWall = self.create_box_collider_object(200, h*2)
 
+        self.topWall.collider.restitution = 0.85
+        self.bottomWall.collider.restitution = 0.85
+        self.leftWall.collider.restitution = 0.85
+        self.rightWall.collider.restitution = 0.85
+
         # set up wall positions
         self.topWall.transform.position = Vector2(w/2, 0-25)
         self.bottomWall.transform.position = Vector2(w/2, h+25)
