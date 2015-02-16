@@ -4,6 +4,7 @@ from components import Transform
 from components import RigidBody
 from components import Collider
 from components import Renderer
+from components import Animator
 
 
 class Entity (object):
@@ -22,6 +23,7 @@ class Entity (object):
         self.rigid_body = None
         self.renderer = None
         self.collider = None
+        self.animator = None
 
     def add_component(self, component):
 
@@ -40,6 +42,9 @@ class Entity (object):
 
         elif isinstance(component, Renderer):
             self.renderer = component
+
+        elif isinstance(component, Animator):
+            self.animator = component
 
         self.components.append(component)
 
@@ -106,8 +111,20 @@ class BoxColliderObject (Entity):
     def __init__(self, width, height, uuid=0):
         super(BoxColliderObject, self).__init__(uuid)
 
-        self.transform = Transform()
+        self.transform = Transform(Vector2(0, 0))
         self.collider = components.BoxCollider(width, height)
+
+        self.add_component(self.transform)
+        self.add_component(self.collider)
+
+
+class CircleColliderObject(Entity):
+
+    def __init__(self, radius, uuid=0):
+        super(CircleColliderObject, self).__init__(uuid)
+
+        self.transform = Transform(Vector2(0, 0))
+        self.collider = components.CircleCollider(radius)
 
         self.add_component(self.transform)
         self.add_component(self.collider)

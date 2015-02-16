@@ -59,13 +59,31 @@ class RigidBody (Component):
         self.velocity = velocity
         self.mass = m
 
+        # gravity scale
+        self.gravity_scale = 0
+
+        self.gravity_enabled = False
+
+        #self.fixed_angle = True
+        #self.angular_velocity = Vector2(0, 0)
+        #self.angular_drag = 0
+
 
 class Collider(Component):
     tag = "collider"
 
     def __init__(self):
         super(Collider, self).__init__()
-        self.physics_texture = None
+
+        # A value of 1 means no friction
+        # A value of 0 means total friction, brings it to a complete halt.
+        # Higher values add energy to the object it is colliding with
+        self.surface_friction = 1
+
+        # Bouncy-ness of a collider
+        # A value of 0 means no bouncing effect
+        # A value of 1 means completely elastic collision effect
+        self.restitution = 0
 
 
 class BoxCollider (Collider):
@@ -87,6 +105,66 @@ class CircleCollider(Collider):
         self.radius = radius
 
 
+class Animator(Component):
+
+    tag = "animator"
+
+    class Animation:
+
+        def __init__(self):
+
+            # name to identity the animation
+            self.name = "base animation"
+
+            # a list of images
+            self.frames = list()
+
+            # time between frames in seconds
+            self.frame_latency = 1.0
+
+        def add_frame(self, frame):
+            self.frames.append(frame)
+
+    def __init__(self):
+        super(Animator, self).__init__()
+        self.current_animation = None
+
+        # track how much time has passed
+        self.latency_accumulator = 0.0
+
+        # the current frame from the animation
+        self.current_frame_index = 0
+
+    def _update_animation(self):
+
+        anim = self.current_animation
+
+        if anim is not None:
+
+            num_of_frames = len(anim.frames)
+
+            if num_of_frames > 0:
+
+                # time to go to the next frame
+                if self.latency_accumulator > anim.frame_latency:
+
+                    self.current_frame_index += 1
+
+                    # cycle through frames
+                    self.current_frame_index %= num_of_frames
+
+                    # Update the renderer's image to display
+                    index = self.current_frame_index
+                    self.entity.renderer.sprite = anim.frames[index]
+
+                    # reset accumulator
+                    self.latency_accumulator = 0.0
+
+                # increment accumulator
+                dt = self.entity.world.engine.delta_time
+                self.latency_accumulator += dt
+
+
 # This component simply flags which entity can receive input.
 class InputComponent (Component):
     tag = "input"
@@ -100,7 +178,6 @@ class Script (object):
 
     def __init__(self, script_name):
         self.script_name = script_name
-        self.entity = None
 
     def take_input(self, event):
         pass
@@ -114,6 +191,16 @@ class Script (object):
         return self.script_name == other.script_name
 
 
+class WorldScript(Script):
+
+    tag = "world script"
+
+    def __init__(self, script_name):
+        super(WorldScript, self).__init__(script_name)
+        self.script_name = script_name
+        self.world = None
+
+
 class BehaviorScript(Script):
 
     tag = "behavior script"
@@ -121,6 +208,7 @@ class BehaviorScript(Script):
     def __init__(self, script_name):
         super(Script, self).__init__()
         self.script_name = script_name
+        self.entity = None
 
     # The physics system calls this function when the belonging
     # entity of this script collides with another entity's collider

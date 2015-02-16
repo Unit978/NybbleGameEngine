@@ -1,9 +1,8 @@
 
+
 from world import *
-from systems import *
 from engine import *
 from entity import *
-from components import Script
 from components import BehaviorScript
 
 from random import randrange
@@ -158,8 +157,8 @@ class PlayerBehavior(BehaviorScript):
 # create a custom world
 class BreakoutWorld (World):
 
-    def __init__(self, engine):
-        super(BreakoutWorld, self).__init__(engine)
+    def __init__(self):
+        super(BreakoutWorld, self).__init__()
 
         # ------- the necessary game attributes to be used in this world ------- #
 
@@ -327,11 +326,7 @@ class BreakoutWorld (World):
         self.rightWall.tag = "wall"
 
 
-# create an instance of your custom world
-breakout_world = BreakoutWorld(breakout_engine)
-
-# set the world so the engine processes that
-breakout_engine.world = breakout_world
+breakout_engine.set_world(BreakoutWorld())
 
 # run game
 breakout_engine.run()

@@ -2,6 +2,7 @@
 from managers import EntityManager
 from entity import GameObject
 from entity import BoxColliderObject
+from entity import CircleColliderObject
 from systems import *
 
 
@@ -13,9 +14,9 @@ from systems import *
 class World (object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, engine=None):
+    def __init__(self):
         # Reference to the engine that it exists in
-        self.engine = engine
+        self.engine = None
         self.systems = list()
         self.entity_manager = EntityManager()
 
@@ -62,6 +63,12 @@ class World (object):
         self.entity_manager.add(entity)
         return entity
 
+    def create_circle_collider_object(self, radius):
+        entity = CircleColliderObject(radius)
+        entity.world = self
+        self.entity_manager.add(entity)
+        return entity
+
     def destroy_entity(self, entity):
 
         # remove the entity from the scene
@@ -87,6 +94,7 @@ class World (object):
         return None
 
     def add_script(self, script):
+        script.world = self
         self.scripts.append(script)
 
     def remove_script(self, script):
