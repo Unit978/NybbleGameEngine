@@ -75,15 +75,15 @@ class Collider(Component):
     def __init__(self):
         super(Collider, self).__init__()
 
-        # A value of 0 means no friction
-        # Higher values means higher frictional force
-        self.dynamic_friction = 0
-        self.static_friction = 0
+        # A value of 1 means no friction
+        # A value of 0 means total friction, brings it to a complete halt.
+        # Higher values add energy to the object it is colliding with
+        self.surface_friction = 1
 
         # Bouncy-ness of a collider
         # A value of 0 means no bouncing effect
         # A value of 1 means completely elastic collision effect
-        self.restitution = 1
+        self.restitution = 0
 
 
 class BoxCollider (Collider):
