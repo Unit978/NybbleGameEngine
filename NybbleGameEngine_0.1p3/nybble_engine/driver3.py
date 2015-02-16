@@ -113,6 +113,11 @@ class MyWorld(World):
         self.leftWall.collider.restitution = 0.85
         self.rightWall.collider.restitution = 0.85
 
+        self.topWall.collider.surface_friction = 0.5
+        self.bottomWall.collider.surface_friction = 0.5
+        self.leftWall.collider.surface_friction = 0.5
+        self.rightWall.collider.surface_friction = 0.5
+
         # set up wall positions
         self.topWall.transform.position = Vector2(w/2, 0-25)
         self.bottomWall.transform.position = Vector2(w/2, h+25)
