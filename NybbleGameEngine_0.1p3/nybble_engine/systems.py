@@ -39,7 +39,7 @@ class PhysicsSystem (System):
     gravity = Vector2(0.0, 500.0)
 
     # This value represents a magnitude of velocity to ignore and treat it as zero
-    ignore_velocity_epsilon = 50
+    ignore_velocity_epsilon = 10
 
     # holds pairs of colliding entities per iteration.
     collision_queue = deque()
@@ -58,17 +58,17 @@ class PhysicsSystem (System):
             collider_a = eA.collider
             rigid_body_a = eA.rigid_body
 
-            if collider_a is not None and rigid_body_a is not None:
+            if collider_a is not None and (rigid_body_a is not None or collider_a.treat_as_dynamic):
 
                 # Move the rigid body
-                self._integrate_motion(transform_a, rigid_body_a)
+                if rigid_body_a is not None:
+                    self._integrate_motion(transform_a, rigid_body_a)
 
                 # Find another entity that it may collide with
                 for eB in entities:
 
                     transform_b = eB.transform
                     collider_b = eB.collider
-                    rigid_body_b = eB.rigid_body
 
                     # Check that coll_comp_b is valid and that coll_comp_a is not colliding with itself
                     if collider_b is not None and eA is not eB:
@@ -85,7 +85,9 @@ class PhysicsSystem (System):
                             # check for collision
                             if collider_a.box.colliderect(collider_b.box):
                                 collision_occurred = True
-                                PhysicsSystem._box2box_response(rigid_body_a, collider_a, rigid_body_b, collider_b)
+
+                                if rigid_body_a is not None:
+                                    PhysicsSystem.box2box_response(collider_a, collider_b)
 
                         # circle to circle collision
                         elif collider_a.tag == CircleCollider.tag and collider_b.tag == CircleCollider.tag:
@@ -93,7 +95,9 @@ class PhysicsSystem (System):
                             # check if circles collided
                             if PhysicsSystem._circle2circle_collision(collider_a, collider_b):
                                 collision_occurred = True
-                                PhysicsSystem._circle2circle_response(rigid_body_a, collider_a, rigid_body_b, collider_b)
+
+                                if rigid_body_a is not None:
+                                    PhysicsSystem.circle2circle_response(collider_a, collider_b)
 
                         # circle to box
                         elif collider_a.tag == CircleCollider.tag and collider_b.tag == BoxCollider.tag:
@@ -102,6 +106,7 @@ class PhysicsSystem (System):
                             box_collider_a = BoxCollider(collider_a.radius*2, collider_a.radius*2)
                             box_collider_a.entity = collider_a.entity
                             box_collider_a.restitution = collider_a.restitution
+                            box_collider_a.surface_friction = collider_a.surface_friction
 
                             # Get the relative collision box positions to their transforms.
                             get_relative_rect_pos(transform_a.position, box_collider_a.box)
@@ -110,7 +115,9 @@ class PhysicsSystem (System):
                             # check for collision
                             if PhysicsSystem._circle2box_collision(collider_a, collider_b):
                                 collision_occurred = True
-                                PhysicsSystem._box2box_response(rigid_body_a, box_collider_a, rigid_body_b, collider_b)
+
+                                if rigid_body_a is not None:
+                                    PhysicsSystem.box2box_response(box_collider_a, collider_b)
 
                         if collision_occurred:
                             # add collision event into the queue
@@ -191,7 +198,10 @@ class PhysicsSystem (System):
         return distance.sq_magnitude() < rsum_sq
 
     @staticmethod
-    def _circle2circle_response(rigid_a, collider_a, rigid_b, collider_b):
+    def circle2circle_response(collider_a, collider_b):
+
+        rigid_a = collider_a.entity.rigid_body
+        rigid_b = collider_b.entity.rigid_body
 
         transform_a = rigid_a.entity.transform
         transform_b = rigid_b.entity.transform
@@ -203,7 +213,7 @@ class PhysicsSystem (System):
 
         # collision with another collider only
         else:
-            PhysicsSystem._resolve_circle2circle_with_collider(transform_a, collider_a, collider_b)
+            PhysicsSystem._resolve_circle2circle_with_collider(transform_a, collider_a, transform_b, collider_b)
 
         # apply collision response
 
@@ -245,12 +255,14 @@ class PhysicsSystem (System):
         # create the new velocities
         rigid_a.velocity = normal_a + tangent_a
 
+        # BUG - applying restitution causes "attachment" between colliders.
+        # Cause Theory: could be a result of the ignore velocity epsilon
         # apply restitution
-        rigid_a.velocity *= collider_b.restitution
+        #rigid_a.velocity *= collider_b.restitution
 
         if rigid_b is not None:
             rigid_b.velocity = normal_b + tangent_b
-            rigid_b.velocity *= collider_a.restitution
+            #rigid_b.velocity *= collider_a.restitution
 
 
     @staticmethod
@@ -293,7 +305,10 @@ class PhysicsSystem (System):
     # Basically, they are treated as particles
     # This should be called if there was a detected collision
     @staticmethod
-    def _box2box_response(rigid_a, collider_a, rigid_b, collider_b):
+    def box2box_response(collider_a, collider_b):
+
+        rigid_a = collider_a.entity.rigid_body
+        rigid_b = collider_b.entity.rigid_body
 
         # Obtain necessary components
         transform_a = collider_a.entity.transform
@@ -302,7 +317,7 @@ class PhysicsSystem (System):
         position_a = transform_a.position
         position_b = transform_b.position
 
-        # Use the Minkowski sum of the two box colliders in
+        # Use the Minkowski sum(differencce) of the two box colliders in
         # order to determine which sides of the boxes collide.
         # This is relative to coll_comp_a.
 
@@ -366,6 +381,11 @@ class PhysicsSystem (System):
         # Collision with another collider only
         else:
             PhysicsSystem._resolve_box2box_with_collider(orientation, transform_a, collider_a, collider_b)
+
+        # This was collider with collider collision. This means that the collider is treated
+        # as a dynamic body that moves and needed collision resolution to be applied.
+        if rigid_a is None:
+            return
 
         # Invert velocity components depending on which side of the boxes hit
         rigid_a.velocity.x *= x_change
@@ -618,7 +638,7 @@ class RenderSystem (System):
 
                     # Offset image position with the camera
                     if self.camera is not None:
-                        position -= self.camera.position
+                        position -= self.camera.transform.position
 
                     display = self.world.engine.display
                     display.blit(renderer.sprite, (position.x, position.y))
@@ -648,8 +668,14 @@ class RenderSystem (System):
 
                 # draw collision box
                 if self.world.engine.debug:
+
                     x = transform.position.x
                     y = transform.position.y
+
+                    # adjust for the camera
+                    if self.camera is not None:
+                        x -= self.camera.transform.position.x
+                        y -= self.camera.transform.position.y
 
                     collider = e.collider
                     rigid_body = e.rigid_body
@@ -687,8 +713,6 @@ class RenderSystem (System):
                         transparency_mask.set_colorkey(color_mask)
 
                         # draw circle to the transparency mask
-                        x = int(x)
-                        y = int(y)
                         mass = int(mass)
                         pygame.draw.circle(transparency_mask, (0, 100, 255), (mass, mass), mass)
 
@@ -696,7 +720,7 @@ class RenderSystem (System):
                         transparency_mask.set_alpha(100)
 
                         # draw transparency mask to the display
-                        display.blit(transparency_mask, (x-mass, y-mass))
+                        display.blit(transparency_mask, (int(x)-mass, int(y)-mass))
 
                     # box collider
                     if collider is not None:
@@ -706,13 +730,16 @@ class RenderSystem (System):
                             # get relative position to transform
                             get_relative_rect_pos(transform.position, collider.box)
 
+                            # center the box image
+                            x -= collider.box.width/2
+                            y -= collider.box.height/2
+                            box = Rect(x, y, collider.box.width, collider.box.height)
+
                             # display collider rect properties
-                            pygame.draw.rect(display, (255, 255, 255), collider.box, 1)
-                            pygame.draw.circle(display, (0, 255, 0), collider.box.center, 5)
-                            pygame.draw.circle(display, (0, 255, 255), collider.box.topleft, 5)
+                            pygame.draw.rect(display, (255, 255, 255), box, 1)
+                            pygame.draw.circle(display, (0, 255, 0), box.center, 3)
+                            pygame.draw.circle(display, (0, 255, 255), box.topleft, 5)
 
                         elif collider.tag == CircleCollider.tag:
-                            x = int(transform.position.x)
-                            y = int(transform.position.y)
                             radius = collider.radius
-                            pygame.draw.circle(display, (255, 255, 255), (x, y), radius, 1)
+                            pygame.draw.circle(display, (255, 255, 255), (int(x), int(y)), radius, 1)
