@@ -27,6 +27,10 @@ class World (object):
         self.add_system(PhysicsSystem())
         self.add_system(RenderSystem())
 
+        # bounds - negative values means no bounds
+        self.width = -1
+        self.height = -1
+
     @abstractmethod
     def load_scene(self):
         """
