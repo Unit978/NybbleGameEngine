@@ -246,8 +246,7 @@ class BreakoutWorld (World):
             w = brick_surface.get_width()
             h = brick_surface.get_height()
 
-            # make the collision box
-            brick.collider.box = Rect(0, 0, w, h)
+            # make the bricks bouncy against the ball
             brick.collider.restitution = 1
 
             # set the new x coordinate for the next brick to spawn at
