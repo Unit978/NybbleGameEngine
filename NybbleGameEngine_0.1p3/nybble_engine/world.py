@@ -117,3 +117,7 @@ class World (object):
         # world scripts
         for s in self.scripts:
             s.update()
+
+    # determine if the world has bounds
+    def is_bounded(self):
+        return self.width > 0 and self.height > 0
