@@ -6,6 +6,74 @@ from components import BehaviorScript
 engine = Engine(1200, 700)
 
 
+class CameraFollow(BehaviorScript):
+
+    def __init__(self, script_name, target_transform, cam_width, cam_height):
+        super(CameraFollow, self).__init__(script_name)
+        self.target_transform = target_transform
+        self.width = cam_width
+        self.height = cam_height
+
+    def update(self):
+
+        # center the target transform in the middle of the camera
+        x = self.target_transform.position.x - self.width/2
+        y = self.target_transform.position.y - self.height/2
+
+        renderer = self.target_transform.entity.renderer
+
+        # center around the image attached to the target transform
+        if renderer is not None:
+            x += renderer.sprite.get_width()/2
+            y += renderer.sprite.get_height()/2
+
+        world = self.entity.world
+
+        # keep camera within world bounds
+        if world.is_bounded():
+            if x < 0:
+                x = 0
+
+            elif x > world.width - self.width:
+                x = world.width - self.width
+
+            if y < 0:
+                y = 0
+
+            elif y > world.height - self.height:
+                y = world.height - self.height
+
+        self.entity.transform.position = Vector2(x, y)
+
+
+# add movement to a platform but have it ignore physical properties
+class PlatformMovement(BehaviorScript):
+
+    def __init__(self, script_name):
+        super(PlatformMovement, self).__init__(script_name)
+        self.h_speed = 100
+        self.velocity = Vector2(self.h_speed, 0)
+
+    # implement custom movement without rigid
+    def update(self):
+        dt = self.entity.world.engine.delta_time
+        transform = self.entity.transform
+        transform.position += self.velocity * dt
+
+    def collision_event(self, other_collider):
+
+        # have the player go along with the platform
+        if other_collider.entity.name == "player":
+            other_collider.entity.rigid_body.velocity.x = self.velocity.x
+
+            # apply friction sliding ???
+
+        # make the platform bounce back and forth
+        if other_collider.entity.tag == "side wall":
+            self.velocity.x *= -1
+            PhysicsSystem.box2box_response(self.entity.collider, other_collider)
+
+
 class PlayerMovement(BehaviorScript):
 
     def __init__(self, script_name):
@@ -40,10 +108,9 @@ class PlatformWorld(World):
         self.player = None
         self.background = None
 
-        self.ball1 = None
-        self.ball2 = None
-
         self.box = None
+
+        self.platform = None
         self.floor = None
 
         # walls
@@ -55,6 +122,11 @@ class PlatformWorld(World):
 
         w = self.engine.display.get_width()
         h = self.engine.display.get_height()
+
+        # world bounds
+        self.width = w*2
+        self.height = h
+
         background_image = pygame.Surface((w, h))
         background_image.convert()
         background_image.fill((12, 0, 40))
@@ -82,9 +154,10 @@ class PlatformWorld(World):
         self.player.add_component(RigidBody())
         self.player.transform.position = Vector2(100, 100)
         self.player.renderer.depth = -10
-        self.player.rigid_body.gravity_scale = 1
+        self.player.rigid_body.gravity_scale = 2
         self.player.add_script(PlayerMovement("player_move"))
-        self.player.collider.restitution = 1
+        self.player.collider.restitution = 0
+        self.player.name = "player"
 
         # set up animation
         animation = Animator.Animation()
@@ -96,7 +169,7 @@ class PlatformWorld(World):
         animation.add_frame(frame4)
 
         # set time between frames in seconds
-        animation.frame_latency = 0.5
+        animation.frame_latency = 0.4
 
         # set the first animation
         animator = Animator()
@@ -105,35 +178,53 @@ class PlatformWorld(World):
         # add animator to player
         self.player.add_component(animator)
 
-        # self.ball1 = self.create_circle_collider_object(80)
-        # self.ball1.add_component(RigidBody())
-        # self.ball1.transform.position = Vector2(10, 300)
-        # self.ball1.rigid_body.velocity = Vector2(300, 0)
-        # self.ball1.rigid_body.mass = 20
-        # self.ball1.rigid_body.gravity_scale = 1
-        # self.ball1.collider.restitution = 1
-        #
-        # self.ball2 = self.create_circle_collider_object(50)
-        # self.ball2.add_component(RigidBody())
-        # self.ball2.transform.position = Vector2(700, 300)
-        # self.ball2.rigid_body.velocity = Vector2(-200, 50)
-        # self.ball2.rigid_body.mass = 10
-        # self.ball2.rigid_body.gravity_scale = 1
-        # self.ball2.collider.restitution = 1
+        platform_img = pygame.Surface((300, 100)).convert()
+        platform_img.fill((150, 150, 150))
+        self.platform = self.create_game_object(platform_img)
+        self.platform.transform.position = Vector2(500, h - 350)
+        self.platform.renderer.depth = -5
+        self.platform.collider.restitution = 0
+        self.platform.collider.surface_friction = 0.8
+        self.platform.collider.treat_as_dynamic = True
+        #self.platform.add_script(PlatformMovement("plat move"))
 
-        box_image = pygame.Surface((300, 100)).convert()
-        box_image.fill((150, 150, 150))
-        self.box = self.create_game_object(box_image)
-        self.box.transform.position = Vector2(200, h - 350)
+        box_img = pygame.Surface((60, 60)).convert()
+        box_img.fill((200, 200, 200))
+
+        self.box = self.create_game_object(box_img)
+        self.box.transform.position = Vector2(400, 300)
         self.box.renderer.depth = -5
         self.box.collider.restitution = 0
         self.box.collider.surface_friction = 0.8
 
-        floor_image = pygame.Surface((w, 200)).convert()
+        self.box.add_component(RigidBody())
+        self.box.rigid_body.velocity = Vector2(0.0, 0.0)
+        self.box.rigid_body.gravity_scale = 2
+
+        box2 = self.create_game_object(box_img)
+        box2.transform.position = Vector2(400, 200)
+        box2.renderer.depth = -5
+        box2.collider.restitution = 0
+        box2.collider.surface_friction = 0.8
+        box2.add_component(RigidBody())
+        box2.rigid_body.velocity = Vector2(0.0, 0.0)
+        box2.rigid_body.gravity_scale = 2
+
+        box3 = self.create_game_object(box_img)
+        box3.transform.position = Vector2(400, 100)
+        box3.renderer.depth = -5
+        box3.collider.restitution = 0
+        box3.collider.surface_friction = 0.8
+
+        box3.add_component(RigidBody())
+        box3.rigid_body.velocity = Vector2(0.0, 0.0)
+        box3.rigid_body.gravity_scale = 2
+
+        floor_image = pygame.Surface((w*2, 200)).convert()
         floor_image.fill((50, 50, 50))
 
         self.floor = self.create_game_object(floor_image)
-        self.floor.transform.position = Vector2(w/2, h-100)
+        self.floor.transform.position = Vector2(w, h-100)
         self.floor.collider.restitution = 0
         self.floor.collider.surface_friction = 0.8
 
@@ -141,12 +232,21 @@ class PlatformWorld(World):
         # Make these wall thick, so the ball doesn't escape from the level.
         self.topWall = self.create_box_collider_object(w*2, 200)
         self.leftWall = self.create_box_collider_object(200, h*2)
-        self.rightWall = self.create_box_collider_object(200, h*2)
+        #self.rightWall = self.create_box_collider_object(200, h*2)
 
         # set up wall positions
-        self.topWall.transform.position = Vector2(w/2, 0-80)
+        self.topWall.transform.position = Vector2(w/2, 0-100)
         self.leftWall.transform.position = Vector2(0, h/2-50)
-        self.rightWall.transform.position = Vector2(w, h/2+50)
+        #self.rightWall.transform.position = Vector2(w, h/2+50)
+
+        self.leftWall.tag = "side wall"
+        #self.rightWall.tag = "side wall"
+
+        render = self.get_system(RenderSystem.tag)
+
+        render.camera = self.create_entity()
+        render.camera.add_component(Transform(Vector2(0, 0)))
+        render.camera.add_script(CameraFollow("cam follow", self.player.transform, w, h))
 
         #PhysicsSystem.gravity.zero()
 
