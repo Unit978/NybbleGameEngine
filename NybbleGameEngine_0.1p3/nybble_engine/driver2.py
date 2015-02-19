@@ -78,7 +78,7 @@ class PlayerMovement(BehaviorScript):
 
     def __init__(self, script_name):
         super(PlayerMovement, self).__init__(script_name)
-        self.h_speed = 200
+        self.h_speed = 400
         self.v_speed = 300
 
     def update(self):
@@ -98,6 +98,11 @@ class PlayerMovement(BehaviorScript):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.entity.rigid_body.velocity.y = -self.v_speed
+
+    def collision_event(self, other_collider):
+        pass
+        #if other_collider.entity.tag == "box":e")
+         #   other_collider.entity.rigid_body.velocity.x = 2 * self.entity.rigid_body.velocity.x / 3
 
 
 class PlatformWorld(World):
@@ -136,6 +141,7 @@ class PlatformWorld(World):
         self.background.add_component(Transform(Vector2(0, 0)))
         self.background.add_component(Renderer(background_image))
         self.background.renderer.depth = 100
+        self.background.renderer.is_static = True
 
         # frames to demonstrate animation
         frame1 = pygame.Surface((50, 80)).convert()
@@ -189,7 +195,7 @@ class PlatformWorld(World):
         #self.platform.add_script(PlatformMovement("plat move"))
 
         box_img = pygame.Surface((60, 60)).convert()
-        box_img.fill((200, 200, 200))
+        box_img.fill((100, 100, 100))
 
         self.box = self.create_game_object(box_img)
         self.box.transform.position = Vector2(400, 300)
@@ -206,9 +212,10 @@ class PlatformWorld(World):
         box2.renderer.depth = -5
         box2.collider.restitution = 0
         box2.collider.surface_friction = 0.8
+
         box2.add_component(RigidBody())
         box2.rigid_body.velocity = Vector2(0.0, 0.0)
-        box2.rigid_body.gravity_scale = 2
+        box2.rigid_body.gravity_scale = 2.0
 
         box3 = self.create_game_object(box_img)
         box3.transform.position = Vector2(400, 100)
@@ -218,7 +225,9 @@ class PlatformWorld(World):
 
         box3.add_component(RigidBody())
         box3.rigid_body.velocity = Vector2(0.0, 0.0)
-        box3.rigid_body.gravity_scale = 2
+        box3.rigid_body.gravity_scale = 2.0
+
+        self.box.tag = box2.tag = box3.tag = "box"
 
         floor_image = pygame.Surface((w*2, 200)).convert()
         floor_image.fill((50, 50, 50))
