@@ -4,6 +4,7 @@ from engine import *
 from components import WorldScript
 
 from random import randrange
+from math import pi
 
 engine = Engine(1200, 700)
 
@@ -16,11 +17,11 @@ class InteractionScript(WorldScript):
     def take_input(self, event):
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            radius = randrange(5, 70)
+            radius = randrange(10, 70)
             ball = self.world.create_circle_collider_object(radius)
             ball.add_component(RigidBody())
-            ball.collider.restitution = 0.9
-            ball.rigid_body.gravity_scale = 1
+            ball.collider.restitution = 0.85
+            ball.rigid_body.gravity_scale = 1.0
 
             # random velocity
             x = randrange(800, 1000)
@@ -34,7 +35,10 @@ class InteractionScript(WorldScript):
             if invert_y == 0:
                 y *= -1
 
-            ball.rigid_body.velocity = Vector2(x, y)
+            ball.rigid_body.velocity = Vector2(10, 10)
+
+            ball.rigid_body.velocity.set_magnitude(800)
+            ball.rigid_body.velocity.set_direction(-pi/4)
 
             # get mouse position
             x = pygame.mouse.get_pos()[0]
@@ -113,10 +117,10 @@ class MyWorld(World):
         self.leftWall.collider.restitution = 0.85
         self.rightWall.collider.restitution = 0.85
 
-        self.topWall.collider.surface_friction = 0.5
-        self.bottomWall.collider.surface_friction = 0.5
-        self.leftWall.collider.surface_friction = 0.5
-        self.rightWall.collider.surface_friction = 0.5
+        self.topWall.collider.surface_friction = 0.98
+        self.bottomWall.collider.surface_friction = 0.98
+        self.leftWall.collider.surface_friction = 0.98
+        self.rightWall.collider.surface_friction = 0.98
 
         # set up wall positions
         self.topWall.transform.position = Vector2(w/2, 0-25)
@@ -124,7 +128,7 @@ class MyWorld(World):
         self.leftWall.transform.position = Vector2(0-50-25, h/2)
         self.rightWall.transform.position = Vector2(w+75, h/2)
 
-        self.bottomWall.collider.restitution = 0.85
+        self.bottomWall.collider.restitution = 0.5
 
         self.add_script(InteractionScript("interaction"))
 
