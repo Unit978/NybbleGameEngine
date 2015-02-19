@@ -284,7 +284,7 @@ class PhysicsSystem (System):
         transform_a.position -= overlap_vec
 
         # same resolve for b but in the other direction
-        transform_b.position += overlap_vec
+        #transform_b.position += overlap_vec
 
     # Same as with_rigid() but collider_b's rigid does not exist
     @staticmethod
@@ -370,9 +370,27 @@ class PhysicsSystem (System):
         if rigid_b is not None:
             PhysicsSystem._resolve_box2box_with_rigid(orientation, transform_a, collider_a, transform_b, collider_b)
 
-            # FIX restitution application
-            # rigid_b.velocity.x *= collider_a.restitution
-            # rigid_b.velocity.y *= collider_a.restitution
+            # mass_a = rigid_a.mass
+            # mass_b = rigid_b.mass
+            #
+            # vel_a = rigid_a.velocity.x
+            # vel_b = rigid_b.velocity.x
+            #
+            # rigid_a.velocity.x = PhysicsSystem._calc_1d_elastic_collision_velocity(vel_a, mass_a, vel_b, mass_b)
+            #
+            # vel_a = rigid_a.velocity.y
+            # vel_b = rigid_b.velocity.y
+            #
+            # rigid_a.velocity.y = PhysicsSystem._calc_1d_elastic_collision_velocity(vel_a, mass_a, vel_b, mass_b)
+
+            if orientation == PhysicsSystem.top or orientation == PhysicsSystem.bottom:
+                rigid_b.velocity.y *= collider_a.restitution
+                rigid_b.velocity.x *= collider_a.surface_friction
+
+            elif orientation == PhysicsSystem.left or orientation == PhysicsSystem.right:
+                rigid_b.velocity.x *= collider_a.restitution
+                #rigid_a.velocity.y *= collider_b.surface_friction
+
 
             # Invert velocities according to orientation
             rigid_b.velocity.x *= x_change
@@ -382,14 +400,14 @@ class PhysicsSystem (System):
         else:
             PhysicsSystem._resolve_box2box_with_collider(orientation, transform_a, collider_a, collider_b)
 
+            # Invert velocity components depending on which side of the boxes hit
+            rigid_a.velocity.x *= x_change
+            rigid_a.velocity.y *= y_change
+
         # This was collider with collider collision. This means that the collider is treated
         # as a dynamic body that moves and needed collision resolution to be applied.
         if rigid_a is None:
             return
-
-        # Invert velocity components depending on which side of the boxes hit
-        rigid_a.velocity.x *= x_change
-        rigid_a.velocity.y *= y_change
 
         # Apply restitution based on the orientation that the boxes hit
         # and apply frictional forces between the collider's surfaces
@@ -418,33 +436,37 @@ class PhysicsSystem (System):
 
             # amount that coll_comp_a went into coll_comp_b
             delta = collider_b.box.bottom - collider_a.box.top
+            delta *= 0.5
 
             # move coll_comp_a out of coll_comp_b by translating it downwards
             transform_a.position.y += delta
 
             # translate entity_b upwards
-            transform_b.position.y -= delta
+            #transform_b.position.y -= delta
 
         elif orient == PhysicsSystem.bottom:
             delta = collider_a.box.bottom - collider_b.box.top
+            delta *= 0.5
 
             # translate upwards
             transform_a.position.y -= delta
-            transform_b.position.y += delta
+            #transform_b.position.y += delta
 
         elif orient == PhysicsSystem.left:
             delta = collider_b.box.right - collider_a.box.left
+            delta *= 0.5
 
             # translate to the right
             transform_a.position.x += delta
-            transform_b.position.x -= delta
+            #transform_b.position.x -= delta
 
         elif orient == PhysicsSystem.right:
             delta = collider_a.box.right - collider_b.box.left
+            delta *= 0.5
 
             # translate to the left
             transform_a.position.x -= delta
-            transform_b.position.x += delta
+            #transform_b.position.x += delta
 
     @staticmethod
     def _resolve_box2box_with_collider(orientation, transform_a, collider_a, collider_b):
@@ -452,24 +474,28 @@ class PhysicsSystem (System):
 
             # amount that coll_comp_a went into coll_comp_b
             delta = collider_b.box.bottom - collider_a.box.top
+            delta *= 0.5
 
             # move coll_comp_a out of coll_comp_b by translating it downwards
             transform_a.position.y += delta
 
         elif orientation == PhysicsSystem.bottom:
             delta = collider_a.box.bottom - collider_b.box.top
+            delta *= 0.5
 
             # translate upwards
             transform_a.position.y -= delta
 
         elif orientation == PhysicsSystem.left:
             delta = collider_b.box.right - collider_a.box.left
+            delta *= 0.5
 
             # translate to the right
             transform_a.position.x += delta
 
         elif orientation == PhysicsSystem.right:
             delta = collider_a.box.right - collider_b.box.left
+            delta *= 0.5
 
             # translate to the left
             transform_a.position.x -= delta
@@ -636,8 +662,8 @@ class RenderSystem (System):
                     # Center it around the image pivot
                     position = transform.position - renderer.pivot
 
-                    # Offset image position with the camera
-                    if self.camera is not None:
+                    # Offset image position with the camera if the renderer is not static
+                    if self.camera is not None and not renderer.is_static:
                         position -= self.camera.transform.position
 
                     display = self.world.engine.display
