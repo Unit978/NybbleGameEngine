@@ -533,6 +533,13 @@ class RenderSystem (System):
         # Set up display for rendering.
         self.camera = None
 
+    # for utility to create a solid image surface of some color
+    @staticmethod
+    def create_solid_image(width, height, color):
+        surface = pygame.Surface((width, height)).convert()
+        surface.fill(color)
+        return surface
+
     # This should be called once the initial entities have been made and right
     # before the main loop starts unless it is necessary to reconstruct a large
     # portions of entities in the scene.
@@ -692,6 +699,9 @@ class RenderSystem (System):
 
                 # ------- Debug info -------- #
 
+                x_origin = self.world.origin.x
+                y_origin = self.world.origin.y
+
                 # draw collision box
                 if self.world.engine.debug:
 
@@ -710,8 +720,8 @@ class RenderSystem (System):
                     pygame.draw.line(display, (255, 0, 0), (x-50, y), (x+50, y))
                     pygame.draw.line(display, (255, 0, 0), (x, y-50), (x, y+50))
 
-                    # draw position vector
-                    pygame.draw.line(display, (50, 50, 50), (0, 0), (x, y))
+                    # draw position vector relative to the world origin
+                    pygame.draw.line(display, (50, 50, 50), (x_origin, y_origin), (x, y))
 
                     if rigid_body is not None:
 
