@@ -48,6 +48,9 @@ class Renderer (Component):
         # USE THE RENDER SYSTEM TO MODIFY THIS VALUE
         self.depth = 0
 
+        # if the renderer is affected by the camera
+        self.is_static = False
+
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
@@ -84,6 +87,11 @@ class Collider(Component):
         # A value of 0 means no bouncing effect
         # A value of 1 means completely elastic collision effect
         self.restitution = 0
+
+        # It flags a static collider to be treated as one that can move but
+        # does not have a rigid body. This is used to apply collision resolution
+        # on the static collider.
+        self.treat_as_dynamic = False
 
 
 class BoxCollider (Collider):
