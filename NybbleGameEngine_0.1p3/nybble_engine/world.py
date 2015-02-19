@@ -30,6 +30,7 @@ class World (object):
         # bounds - negative values means no bounds
         self.width = -1
         self.height = -1
+        self.origin = Vector2(0, 0)
 
     @abstractmethod
     def load_scene(self):
