@@ -3,7 +3,6 @@ from world import *
 from engine import *
 from components import BehaviorScript
 
-from copy import copy
 
 engine = Engine(1200, 700)
 
@@ -69,7 +68,6 @@ class ElevatorPlatMovement(BehaviorScript):
             self.entity.transform.position.y = self.spawn_point.y
 
 
-
 # add movement to a platform but have it ignore physical properties
 class PlatformMovement(BehaviorScript):
 
@@ -122,9 +120,8 @@ class PlayerMovement(BehaviorScript):
 
     def __init__(self, script_name):
         super(PlayerMovement, self).__init__(script_name)
-        self.h_speed = 900
-        #self.v_speed = 300
-        self.v_speed = 500
+        self.h_speed = 300
+        self.v_speed = 300
 
         self.grounded = True
 
@@ -389,16 +386,19 @@ class PlatformWorld(World):
 
     def load_player(self):
         # frames to demonstrate animation
-        frame1 = pygame.Surface((50, 80)).convert()
+
+        size = (50, 60)
+
+        frame1 = pygame.Surface(size).convert()
         frame1.fill((255, 0, 0))
 
-        frame2 = pygame.Surface((50, 80)).convert()
+        frame2 = pygame.Surface(size).convert()
         frame2.fill((0, 255, 0))
 
-        frame3 = pygame.Surface((50, 80)).convert()
+        frame3 = pygame.Surface(size).convert()
         frame3.fill((0, 0, 255))
 
-        frame4 = pygame.Surface((50, 80)).convert()
+        frame4 = pygame.Surface(size).convert()
         frame4.fill((255, 255, 255))
 
         self.player = self.create_game_object(frame1)
