@@ -186,7 +186,7 @@ class BreakoutWorld (World):
 
         # create the score value widget
         w = score_text_surface.get_width()
-        score_value_widget = self.engine.gui.Widget(score_text_surface, Vector2(w, 0))
+        score_value_widget = self.engine.gui.Widget(score_value_surface, Vector2(w, 0))
         score_value_widget.tag = "score value"
 
         # send the text widgets to the gui handler
