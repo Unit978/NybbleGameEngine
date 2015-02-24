@@ -134,7 +134,7 @@ class PlayerMovement(BehaviorScript):
         if keys[pygame.K_a]:
             velocity.x = -self.h_speed
 
-        elif keys[pygame.K_d]:
+        if keys[pygame.K_d]:
             velocity.x = self.h_speed
 
     def take_input(self, event):
@@ -197,6 +197,8 @@ class PlatformWorld(World):
         background_image = pygame.Surface((w, h))
         background_image.convert()
         background_image.fill((12, 0, 40))
+        #background_image.fill( (0, 0, 0) )
+        #background_image.set_alpha(100)
 
         # add necessary components to be able to position and render the background
         background = self.create_entity()
@@ -213,19 +215,18 @@ class PlatformWorld(World):
         self.load_platforms()
         self.load_elevators()
 
+        box_img = pygame.image.load("assets/Assets/Block_v1_100x100-01.png").convert_alpha()
 
-        # box_img = pygame.Surface((60, 60)).convert()
-        # box_img.fill((100, 100, 100))
+        box = self.create_game_object(box_img)
+        box.transform.position = Vector2(700, 300)
+        box.renderer.depth = -5
+        box.collider.restitution = 0
+        box.collider.surface_friction = 0.8
 
-        # self.box = self.create_game_object(box_img)
-        # self.box.transform.position = Vector2(400, 300)
-        # self.box.renderer.depth = -5
-        # self.box.collider.restitution = 0
-        # self.box.collider.surface_friction = 0.8
-        #
-        # self.box.add_component(RigidBody())
-        # self.box.rigid_body.velocity = Vector2(0.0, 0.0)
-        # self.box.rigid_body.gravity_scale = 2
+        box.add_component(RigidBody())
+        box.rigid_body.velocity = Vector2(0.0, 0.0)
+        box.rigid_body.gravity_scale = 2
+
         #
         # box2 = self.create_game_object(box_img)
         # box2.transform.position = Vector2(400, 200)
@@ -341,12 +342,30 @@ class PlatformWorld(World):
 
     def load_floors(self):
 
+        for i in range(0, 10):
+
+            plat_img = pygame.image.load("assets/Assets/Platform_Tile-01.png").convert_alpha()
+
+            plat_sample = self.create_entity()
+            plat_sample.add_component(Transform(Vector2(50*i, 300)))
+            plat_sample.add_component(Renderer(plat_img))
+            plat_sample.renderer.depth = -10
+
         floor_color = (50, 50, 50)
 
         w = self.engine.display.get_width()
         h = self.engine.display.get_height()
 
         img = RenderSystem.create_solid_image(w*2, 200, floor_color)
+
+        floor_img = pygame.image.load("assets/Assets/Tileable_Floor-01.png").convert_alpha()
+
+        floor_over = self.create_entity()
+        floor_over.add_component(Transform(Vector2(0, 600)))
+        floor_over.add_component(Renderer(floor_img))
+
+        floor_over.renderer.depth = -100
+
         floor_a = self.create_game_object(img)
         floor_a.transform.position = Vector2(w, h)
         set_floor_attributes(floor_a)
@@ -385,23 +404,21 @@ class PlatformWorld(World):
         set_ceiling_attributes(ceil_c)
 
     def load_player(self):
+
         # frames to demonstrate animation
+        frame_list = list()
 
-        size = (50, 60)
+        for i in range(0, 10):
+            path = "assets/GustavAnimations_Final/Idle/"
+            frame_file = "Idle_"
+            number = i + 1
+            frame_file += str(number) + ".png"
+            path += frame_file
 
-        frame1 = pygame.Surface(size).convert()
-        frame1.fill((255, 0, 0))
+            frame = pygame.image.load(path).convert_alpha()
+            frame_list.append(frame)
 
-        frame2 = pygame.Surface(size).convert()
-        frame2.fill((0, 255, 0))
-
-        frame3 = pygame.Surface(size).convert()
-        frame3.fill((0, 0, 255))
-
-        frame4 = pygame.Surface(size).convert()
-        frame4.fill((255, 255, 255))
-
-        self.player = self.create_game_object(frame1)
+        self.player = self.create_game_object(frame_list[0])
         self.player.add_component(RigidBody())
         self.player.transform.position = Vector2(230, 480)
         self.player.renderer.depth = -10
@@ -410,17 +427,16 @@ class PlatformWorld(World):
         self.player.collider.restitution = 0
         self.player.name = "player"
 
+        self.player.collider.box.width = 50
+
         # set up animation
         animation = Animator.Animation()
 
-        # add frames to animation
-        animation.add_frame(frame1)
-        animation.add_frame(frame2)
-        animation.add_frame(frame3)
-        animation.add_frame(frame4)
+        for frame in frame_list:
+            animation.add_frame(frame)
 
         # set time between frames in seconds
-        animation.frame_latency = 0.4
+        animation.frame_latency = 0.105
 
         # set the first animation
         animator = Animator()
@@ -431,6 +447,7 @@ class PlatformWorld(World):
 
     def load_elevators(self):
 
+        # select a filler color
         plat_color = (90, 90, 90)
 
         # create elevator platforms
