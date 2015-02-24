@@ -44,6 +44,7 @@ class CameraFollow(BehaviorScript):
             elif y > world.origin.y + world.height - self.height:
                 y = world.origin.y + world.height - self.height
 
+        # set the camera position accordingly
         self.entity.transform.position = Vector2(x, y)
 
 
