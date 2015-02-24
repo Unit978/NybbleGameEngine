@@ -93,6 +93,9 @@ class Collider(Component):
         # on the static collider.
         self.treat_as_dynamic = False
 
+        # detects a collision against another collider only
+        self.is_trigger = False
+
 
 class BoxCollider (Collider):
     tag = "box collider"
