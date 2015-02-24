@@ -53,6 +53,22 @@ class Entity (object):
         for c in self.components:
             if c.tag == component_tag:
                 self.components.pop(i)
+
+                if component_tag == Transform.tag:
+                    self.transform = None
+
+                elif component_tag == RigidBody.tag:
+                    self.rigid_body = None
+
+                elif component_tag == Collider.tag:
+                    self.collider = None
+
+                elif component_tag == Renderer.tag:
+                    self.renderer = None
+
+                elif component_tag == Animator.tag:
+                    self.animator = None
+
                 return
             i += 1
 
