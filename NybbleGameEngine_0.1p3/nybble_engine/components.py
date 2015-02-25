@@ -96,6 +96,10 @@ class Collider(Component):
         # detects a collision against another collider only
         self.is_trigger = False
 
+        # An offset relative to the transform position associated to the entity
+        # that this collider belongs to
+        self.offset = Vector2(0.0, 0.0)
+
 
 class BoxCollider (Collider):
     tag = "box collider"
