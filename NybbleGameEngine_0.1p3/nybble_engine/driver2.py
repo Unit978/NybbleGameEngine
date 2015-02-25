@@ -111,11 +111,6 @@ class PlatformMovement(BehaviorScript):
 
             # apply friction sliding ???
 
-        # make the platform bounce back and forth
-        # if other_collider.entity.tag == "side wall":
-        #     self.velocity.x *= -1
-        #     PhysicsSystem.box2box_response(self.entity.collider, other_collider)
-
 
 class PlayerMovement(BehaviorScript):
 
@@ -125,6 +120,8 @@ class PlayerMovement(BehaviorScript):
         self.v_speed = 300
 
         self.grounded = True
+
+        self.holding_crate = False
 
     def update(self):
 
@@ -138,12 +135,18 @@ class PlayerMovement(BehaviorScript):
         if keys[pygame.K_d]:
             velocity.x = self.h_speed
 
+        if keys[pygame.K_LCTRL]:
+            self.holding_crate = True
+
+        else:
+            self.holding_crate = False
+
     def take_input(self, event):
 
         if event.type == pygame.KEYDOWN:
 
             # check that we are grounded
-            # if event.key == pygame.K_SPACE and self.grounded:
+            # if event.key == pygame.K_SPACE and self.grounded :
             #     self.entity.rigid_body.velocity.y = -self.v_speed
             #
             #     # we are no longer grounded
@@ -173,8 +176,20 @@ class PlayerMovement(BehaviorScript):
             if player_lower_bound - 1 < other_upper_bound:
                 self.grounded = True
 
-        #if other_collider.entity.tag == "box"":
-         #   other_collider.entity.rigid_body.velocity.x = 2 * self.entity.rigid_body.velocity.x / 3
+        if other_collider.entity.tag == "box":
+
+            # check if the player hits the box from the sides
+            # add a small tolerance to the right/left values due to collider overlaps
+            on_left = self.entity.collider.box.right-5 < other_collider.box.left
+            on_right = self.entity.collider.box.left+5 > other_collider.box.right
+
+            direction = 1
+
+            if on_right:
+                direction = -1
+
+            if self.grounded and self.holding_crate and (on_left or on_right):
+                other_collider.entity.rigid_body.velocity.x = 2*self.h_speed/3.0 * direction
 
 
 class PlatformWorld(World):
@@ -227,6 +242,7 @@ class PlatformWorld(World):
         box.add_component(RigidBody())
         box.rigid_body.velocity = Vector2(0.0, 0.0)
         box.rigid_body.gravity_scale = 2
+        box.tag = "box"
 
         #
         # box2 = self.create_game_object(box_img)
