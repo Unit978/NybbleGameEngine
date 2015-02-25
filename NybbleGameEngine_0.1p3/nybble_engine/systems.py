@@ -64,13 +64,9 @@ class PhysicsSystem (System):
             # entity also has a rigid body to modify or if the collider should trigger a collision event.
             consider_entity = False
             if valid_collider:
-                consider_entity = rigid_body_a is not None or collider_a.treat_as_dynamic or collider_a.is_trigger
+                consider_entity = rigid_body_a is not None or collider_a.treat_as_dynamic
 
             if valid_collider and consider_entity:
-
-                # A flag to tell the physics systems not to apply physics or collision
-                # resolution on the entity if this collider collides with another collider.
-                isnt_trigger = not collider_a.is_trigger
 
                 # Move the rigid body
                 if rigid_body_a is not None:
@@ -87,6 +83,10 @@ class PhysicsSystem (System):
 
                         collision_occurred = False
 
+                        # A flag to tell the physics systems not to apply physics or collision
+                        # resolution on the entity if this collider collides with another collider.
+                        b_isnt_trigger = not collider_b.is_trigger
+
                         # box to box collision
                         if collider_a.tag == BoxCollider.tag and collider_b.tag == BoxCollider.tag:
 
@@ -98,7 +98,7 @@ class PhysicsSystem (System):
                             if collider_a.box.colliderect(collider_b.box):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger:
                                     PhysicsSystem.box2box_response(collider_a, collider_b)
 
                         # circle to circle collision
@@ -108,7 +108,7 @@ class PhysicsSystem (System):
                             if PhysicsSystem._circle2circle_collision(collider_a, collider_b):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger:
                                     PhysicsSystem.circle2circle_response(collider_a, collider_b)
 
                         # circle to box
@@ -128,7 +128,7 @@ class PhysicsSystem (System):
                             if PhysicsSystem._circle2box_collision(collider_a, collider_b):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger:
                                     PhysicsSystem.box2box_response(box_collider_a, collider_b)
 
                         if collision_occurred:
