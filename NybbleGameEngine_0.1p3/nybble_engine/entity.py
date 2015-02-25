@@ -88,6 +88,15 @@ class Entity (object):
                 return
             i += 1
 
+    def get_script(self, script_name):
+        i = 0
+        for s in self.scripts:
+            # script found
+            if s.script_name == script_name:
+                return s
+            i += 1
+        return None
+
     def get_component(self, component_tag):
         for c in self.components:
             if c.tag == component_tag:
