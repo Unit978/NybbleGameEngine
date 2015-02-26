@@ -3,6 +3,8 @@ from abc import ABCMeta
 
 from util_math import Vector2
 
+from pygame import transform
+
 
 # Base class for all components
 class Component (object):
@@ -26,13 +28,51 @@ class Transform (Component):
         self.degrees = degrees
         self.scale = Vector2(x_scale, y_scale)
 
+    # Even though the render system should handle this logic, it would do it at very
+    # rendering update but these scaling operations on surface are expensive. To fix
+    # this, the logic has been done here for efficiency purposes.
+    def scale_by(self, x_scale, y_scale):
+
+        # update the scale vector
+        self.scale = Vector2(x_scale, y_scale)
+
+        # if the entity only has a single image associated
+        if self.entity.animator is None and self.entity.renderer is not None:
+            renderer = self.entity.renderer
+
+            # scale the image surface
+            renderer.sprite = Renderer.scale_image(renderer.original_image, x_scale, y_scale)
+
+        # scale every frame in the animator's current animation relative to the original frames
+        elif self.entity.animator is not None:
+            anim = self.entity.animator.current_animation
+            for i in range(0, len(anim.frames)):
+                anim.frames[i] = Renderer.scale_image(anim.original_frames[i], x_scale, y_scale)
+
+        #  scale the collider as well
+        if self.entity.collider is not None:
+
+            # for box colliders
+            if self.entity.collider.tag == BoxCollider.tag:
+                self.entity.collider.box.w *= abs(x_scale)
+                self.entity.collider.box.h *= abs(y_scale)
+
+            # circle colliders - use the x scale to scale the radius
+            elif self.entity.collider.tag == CircleCollider.tag:
+                self.entity.collider.radius *= abs(x_scale)
+
+            # scale the offsets of the colliders
+            self.entity.collider.offset.x *= x_scale
+            self.entity.collider.offset.x *= y_scale
+
+            print("collider scaled")
+
 
 # Contains image to render
 # pivot is of type Vector2 - it is the position relative to the image
 # which specifies where to start drawing the image from.
 # Rendering a image centered on a point would require that
 # pivot = Vector2(image.width/2, image.height/2)
-
 class Renderer (Component):
     tag = "render"
 
@@ -51,6 +91,22 @@ class Renderer (Component):
         # if the renderer is affected by the camera
         self.is_static = False
 
+    # scale the destination image surface relative to the
+    # source image.
+    @staticmethod
+    def scale_image(src_image, x_scale, y_scale):
+
+        # find the new dimensions of scaled image
+        new_width = src_image.get_width() * abs(x_scale)
+        new_height = src_image.get_height() * abs(y_scale)
+
+        dst_image = transform.scale(src_image, (int(new_width), int(new_height)))
+
+        # flip the image if the scales are negative
+        invert_x = x_scale < 0
+        invert_y = y_scale < 0
+        return transform.flip(dst_image, invert_x, invert_y)
+
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
@@ -67,9 +123,9 @@ class RigidBody (Component):
 
         self.gravity_enabled = False
 
-        #self.fixed_angle = True
-        #self.angular_velocity = Vector2(0, 0)
-        #self.angular_drag = 0
+        # self.fixed_angle = True
+        # self.angular_velocity = Vector2(0, 0)
+        # self.angular_drag = 0
 
 
 class Collider(Component):
@@ -131,7 +187,10 @@ class Animator(Component):
             # name to identity the animation
             self.name = "base animation"
 
-            # a list of images
+            # list of the original frames
+            self.original_frames = list()
+
+            # a list of images that will be displayed
             self.frames = list()
 
             # time between frames in seconds
@@ -139,6 +198,7 @@ class Animator(Component):
 
         def add_frame(self, frame):
             self.frames.append(frame)
+            self.original_frames.append(frame)
 
     def __init__(self):
         super(Animator, self).__init__()
@@ -149,6 +209,15 @@ class Animator(Component):
 
         # the current frame from the animation
         self.current_frame_index = 0
+
+    def set_animation(self, new_animation):
+
+        self.current_animation = new_animation
+
+        # apply transform scaling
+        x_scale = self.entity.transform.scale.x
+        y_scale = self.entity.transform.scale.y
+        self.entity.transform.scale_by(x_scale, y_scale)
 
     def _update_animation(self):
 
