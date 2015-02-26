@@ -776,7 +776,7 @@ class RenderSystem (System):
                         if collider.tag == BoxCollider.tag:
 
                             # get relative position to transform
-                            get_relative_rect_pos(transform.position, collider.box)
+                            get_relative_rect_pos(transform.position, collider)
 
                             # center the box image
                             x -= collider.box.width/2
