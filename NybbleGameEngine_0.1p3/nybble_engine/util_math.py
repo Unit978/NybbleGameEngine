@@ -115,6 +115,6 @@ class Vector2:
 
 
 # centers the rect around position coordinate
-def get_relative_rect_pos(position, rect):
-    rect.x = position.x - rect.width/2
-    rect.y = position.y - rect.height/2
+def get_relative_rect_pos(position, collider):
+    collider.rect.x = position.x - collider.rect.width/2 + collider.offset.x
+    collider.rect.y = position.y - collider.rect.height/2 + collider.offset.y
