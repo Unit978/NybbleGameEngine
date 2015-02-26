@@ -65,8 +65,6 @@ class Transform (Component):
             self.entity.collider.offset.x *= x_scale
             self.entity.collider.offset.x *= y_scale
 
-            print("collider scaled")
-
 
 # Contains image to render
 # pivot is of type Vector2 - it is the position relative to the image
