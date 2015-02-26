@@ -63,7 +63,7 @@ class Transform (Component):
 
             # scale the offsets of the colliders
             self.entity.collider.offset.x *= x_scale
-            self.entity.collider.offset.x *= y_scale
+            self.entity.collider.offset.y *= y_scale
 
 
 # Contains image to render
@@ -94,16 +94,15 @@ class Renderer (Component):
     @staticmethod
     def scale_image(src_image, x_scale, y_scale):
 
-        # find the new dimensions of scaled image
-        new_width = src_image.get_width() * abs(x_scale)
-        new_height = src_image.get_height() * abs(y_scale)
-
-        dst_image = transform.scale(src_image, (int(new_width), int(new_height)))
-
         # flip the image if the scales are negative
         invert_x = x_scale < 0
         invert_y = y_scale < 0
-        return transform.flip(dst_image, invert_x, invert_y)
+        dst_image = transform.flip(src_image, invert_x, invert_y)
+
+        # find the new dimensions of scaled image
+        new_width = src_image.get_width() * abs(x_scale)
+        new_height = src_image.get_height() * abs(y_scale)
+        return transform.scale(dst_image, (int(new_width), int(new_height)))
 
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
@@ -194,6 +193,10 @@ class Animator(Component):
             # time between frames in seconds
             self.frame_latency = 1.0
 
+            # Cycle == True means to restart back to the first frame
+            # and cycle == False means to stop at the last frame.
+            self.cycle = True
+
         def add_frame(self, frame):
             self.frames.append(frame)
             self.original_frames.append(frame)
@@ -211,6 +214,7 @@ class Animator(Component):
     def set_animation(self, new_animation):
 
         self.current_animation = new_animation
+        self.current_frame_index = 0
 
         # apply transform scaling
         x_scale = self.entity.transform.scale.x
@@ -233,7 +237,12 @@ class Animator(Component):
                     self.current_frame_index += 1
 
                     # cycle through frames
-                    self.current_frame_index %= num_of_frames
+                    if anim.cycle:
+                        self.current_frame_index %= num_of_frames
+
+                    # stop at the last frame
+                    elif self.current_frame_index >= len(anim.frames):
+                        return
 
                     # Update the renderer's image to display
                     index = self.current_frame_index
