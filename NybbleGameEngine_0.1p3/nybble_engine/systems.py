@@ -788,7 +788,11 @@ class RenderSystem (System):
                             box = Rect(x+x_offset, y+y_offset, collider.box.width, collider.box.height)
 
                             # display collider rect properties
-                            pygame.draw.rect(display, (255, 255, 255), box, 1)
+                            color = (255, 255, 255)
+                            if collider.is_trigger:
+                                color = (0, 255, 255)
+
+                            pygame.draw.rect(display, color, box, 1)
                             pygame.draw.circle(display, (0, 255, 0), box.center, 3)
                             pygame.draw.circle(display, (0, 255, 255), box.topleft, 5)
 
