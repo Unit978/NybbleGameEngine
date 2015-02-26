@@ -116,8 +116,8 @@ class PlayerMovement(BehaviorScript):
 
     def __init__(self, script_name):
         super(PlayerMovement, self).__init__(script_name)
-        self.h_speed = 300
-        self.v_speed = 300
+        self.h_speed = 250
+        self.v_speed = 400
 
         self.grounded = True
 
@@ -192,6 +192,50 @@ class PlayerMovement(BehaviorScript):
                 other_collider.entity.rigid_body.velocity.x = 2*self.h_speed/3.0 * direction
 
 
+class PlayerClimbing(BehaviorScript):
+
+    def __init__(self, script_name):
+        super(PlayerClimbing, self).__init__(script_name)
+
+        self.climb_speed = 200.0
+        self.move_up = False
+        self.move_down = False
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_w]:
+            self.move_up = True
+
+        else:
+            self.move_up = False
+
+        if keys[pygame.K_s]:
+            self.move_down = True
+
+        else:
+            self.move_down = False
+
+    def collision_event(self, other_collider):
+
+        if other_collider.entity.tag == "ladder":
+
+            grounded = self.entity.get_script("player move").grounded
+
+            print(grounded)
+
+            if not grounded:
+                self.entity.rigid_body.velocity.y = 0
+                self.entity.rigid_body.velocity.x *= 0.1
+
+            if self.move_up:
+                self.entity.rigid_body.velocity.y = -self.climb_speed
+                self.entity.get_script("player move").grounded = False
+
+            elif self.move_down:
+                self.entity.rigid_body.velocity.y = self.climb_speed
+
+
 class PlatformWorld(World):
 
     def __init__(self):
@@ -225,6 +269,7 @@ class PlatformWorld(World):
 
         self.load_player()
 
+        self.load_ladders()
         self.load_floors()
         self.load_ceilings()
         self.load_walls()
@@ -234,7 +279,7 @@ class PlatformWorld(World):
         box_img = pygame.image.load("assets/Assets/Block_v1_100x100-01.png").convert_alpha()
 
         box = self.create_game_object(box_img)
-        box.transform.position = Vector2(700, 300)
+        box.transform.position = Vector2(900, 300)
         box.renderer.depth = -5
         box.collider.restitution = 0
         box.collider.surface_friction = 0.8
@@ -244,34 +289,20 @@ class PlatformWorld(World):
         box.rigid_body.gravity_scale = 2
         box.tag = "box"
 
-        #
-        # box2 = self.create_game_object(box_img)
-        # box2.transform.position = Vector2(400, 200)
-        # box2.renderer.depth = -5
-        # box2.collider.restitution = 0
-        # box2.collider.surface_friction = 0.8
-        #
-        # box2.add_component(RigidBody())
-        # box2.rigid_body.velocity = Vector2(0.0, 0.0)
-        # box2.rigid_body.gravity_scale = 2.0
-        #
-        # box3 = self.create_game_object(box_img)
-        # box3.transform.position = Vector2(400, 100)
-        # box3.renderer.depth = -5
-        # box3.collider.restitution = 0
-        # box3.collider.surface_friction = 0.8
-        #
-        # box3.add_component(RigidBody())
-        # box3.rigid_body.velocity = Vector2(0.0, 0.0)
-        # box3.rigid_body.gravity_scale = 2.0
-
-        # self.box.tag = box2.tag = box3.tag = "box"
-
         # set up camera
         render = self.get_system(RenderSystem.tag)
         render.camera = self.create_entity()
         render.camera.add_component(Transform(Vector2(0, 0)))
         render.camera.add_script(CameraFollow("cam follow", self.player.transform, w, h))
+
+    def load_ladders(self):
+        ladder_color = (200, 200, 200)
+        ladder_img = pygame.Surface((50, 440)).convert()
+        ladder_img.fill(ladder_color)
+        ladder1 = self.create_game_object(ladder_img)
+        ladder1.collider.is_trigger = True
+        ladder1.transform.position = Vector2(950, 395)
+        ladder1.tag = "ladder"
 
     def load_platforms(self):
 
@@ -440,11 +471,14 @@ class PlatformWorld(World):
         self.player.transform.position = Vector2(230, 480)
         self.player.renderer.depth = -10
         self.player.rigid_body.gravity_scale = 2
-        self.player.add_script(PlayerMovement("player_move"))
         self.player.collider.restitution = 0
         self.player.name = "player"
 
         self.player.collider.box.width = 50
+        self.player.collider.offset.x = -10
+
+        self.player.add_script(PlayerClimbing("player climb"))
+        self.player.add_script(PlayerMovement("player move"))
 
         # set up animation
         animation = Animator.Animation()
@@ -497,7 +531,7 @@ class PlatformWorld(World):
 
 def set_floor_attributes(floor):
     floor.collider.restitution = 0
-    floor.collider.surface_friction = 0.8
+    floor.collider.surface_friction = 0.75
     floor.renderer.depth = -10
     floor.tag = "floor"
 
