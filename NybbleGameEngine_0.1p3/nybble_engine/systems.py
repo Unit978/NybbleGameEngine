@@ -312,6 +312,52 @@ class PhysicsSystem (System):
         overlap_vec = normal_ab * overlap_mag
         transform_a.position -= overlap_vec
 
+    # determine which side of the box_b did box_a hit
+    @staticmethod
+    def calc_box_hit_orientation(collider_a, collider_b):
+
+        position_a = collider_a.entity.transform.position
+        position_b = collider_b.entity.transform.position
+
+        # Use the Minkowski sum(difference) of the two box colliders in
+        # order to determine which sides of the boxes collide.
+        # This is relative to coll_comp_a.
+        width = 0.5 * (collider_a.box.width + collider_b.box.width)
+        height = 0.5 * (collider_a.box.height + collider_b.box.height)
+
+        # Pay close attention to the operands
+        dx = position_b.x - position_a.x
+        dy = position_a.y - position_b.y
+
+        # Another way to detect collision
+        # if abs(dx) <= width and abs(dy) <= height:
+
+        wy = width * dy
+        hx = height * dx
+
+        # ------- determine where it hit ------- #
+        if wy > hx:
+
+            # collision from the top
+            if wy > -hx:
+                return PhysicsSystem.top
+
+            # collision from the left
+            # wy <= -hx
+            else:
+                return PhysicsSystem.left
+
+        # wy <= hx
+        else:
+            # collision from the right
+            if wy > -hx:
+                return PhysicsSystem.right
+
+            # collision from the bottom
+            # wy <= -hx
+            else:
+                return PhysicsSystem.bottom
+
     # Apply bouncing between two simplified rigid bodies. For right now,
     # rigid bodies are entities that do not rotate their collision polygons.
     # Basically, they are treated as particles
@@ -326,56 +372,13 @@ class PhysicsSystem (System):
         transform_a = collider_a.entity.transform
         transform_b = collider_b.entity.transform
 
-        position_a = transform_a.position
-        position_b = transform_b.position
+        x_change = y_change = 1
+        orientation = PhysicsSystem.calc_box_hit_orientation(collider_a, collider_b)
+        if orientation == PhysicsSystem.top or orientation == PhysicsSystem.bottom:
+            y_change = -1
 
-        # Use the Minkowski sum(differencce) of the two box colliders in
-        # order to determine which sides of the boxes collide.
-        # This is relative to coll_comp_a.
-
-        width = 0.5 * (collider_a.box.width + collider_b.box.width)
-        height = 0.5 * (collider_a.box.height + collider_b.box.height)
-
-        # Pay close attention to the operands
-        dx = position_b.x - position_a.x
-        dy = position_a.y - position_b.y
-
-        # changes the velocity vector
-        x_change = 1
-        y_change = 1
-
-        # Another way to detect collision
-        # if abs(dx) <= width and abs(dy) <= height:
-
-        wy = width * dy
-        hx = height * dx
-
-        # ------- determine where it hit ------- #
-        if wy > hx:
-
-            # collision from the top
-            if wy > -hx:
-                y_change = -1
-                orientation = PhysicsSystem.top
-
-            # collision from the left
-            # wy <= -hx
-            else:
-                x_change = -1
-                orientation = PhysicsSystem.left
-
-        # wy <= hx
-        else:
-            # collision from the right
-            if wy > -hx:
-                x_change = -1
-                orientation = PhysicsSystem.right
-
-            # collision from the bottom
-            # wy <= -hx
-            else:
-                y_change = -1
-                orientation = PhysicsSystem.bottom
+        elif orientation == PhysicsSystem.left or orientation == PhysicsSystem.right:
+            x_change = -1
 
         # Apply collision resolution to avoid colliders getting stuck with each other
         # Collision with rigid body
