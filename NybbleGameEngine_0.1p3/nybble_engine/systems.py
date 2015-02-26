@@ -91,8 +91,8 @@ class PhysicsSystem (System):
                         if collider_a.tag == BoxCollider.tag and collider_b.tag == BoxCollider.tag:
 
                             # Get the relative collision box positions to their transforms.
-                            get_relative_rect_pos(transform_a.position, collider_a.box)
-                            get_relative_rect_pos(transform_b.position, collider_b.box)
+                            get_relative_rect_pos(transform_a.position, collider_a)
+                            get_relative_rect_pos(transform_b.position, collider_b)
 
                             # check for collision
                             if collider_a.box.colliderect(collider_b.box):
