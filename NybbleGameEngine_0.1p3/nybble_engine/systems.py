@@ -781,7 +781,11 @@ class RenderSystem (System):
                             # center the box image
                             x -= collider.box.width/2
                             y -= collider.box.height/2
-                            box = Rect(x, y, collider.box.width, collider.box.height)
+
+                            # render based on the offset of the collider as well
+                            x_offset = collider.offset.x
+                            y_offset = collider.offset.y
+                            box = Rect(x+x_offset, y+y_offset, collider.box.width, collider.box.height)
 
                             # display collider rect properties
                             pygame.draw.rect(display, (255, 255, 255), box, 1)
