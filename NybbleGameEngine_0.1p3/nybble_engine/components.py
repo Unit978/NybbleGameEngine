@@ -36,15 +36,17 @@ class Transform (Component):
         # update the scale vector
         self.scale = Vector2(x_scale, y_scale)
 
-        # if the entity only has a single image associated
-        if self.entity.animator is None and self.entity.renderer is not None:
-            renderer = self.entity.renderer
+        # transform the renderer's attributes
+        renderer = self.entity.renderer
 
-            # scale the image surface
-            renderer.sprite = Renderer.scale_image(renderer.original_image, x_scale, y_scale)
+        # scale the image surface
+        renderer.sprite = Renderer.scale_image(renderer.original_image, x_scale, y_scale)
+
+        renderer.pivot.x *= abs(x_scale)
+        renderer.pivot.y *= abs(y_scale)
 
         # scale every frame in the animator's current animation relative to the original frames
-        elif self.entity.animator is not None:
+        if self.entity.animator is not None:
             anim = self.entity.animator.current_animation
             for i in range(0, len(anim.frames)):
                 anim.frames[i] = Renderer.scale_image(anim.original_frames[i], x_scale, y_scale)
