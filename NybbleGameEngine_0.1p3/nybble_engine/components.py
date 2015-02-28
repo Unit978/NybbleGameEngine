@@ -51,21 +51,23 @@ class Transform (Component):
             for i in range(0, len(anim.frames)):
                 anim.frames[i] = Renderer.scale_image(anim.original_frames[i], x_scale, y_scale)
 
+        collider = self.entity.collider
+
         #  scale the collider as well
-        if self.entity.collider is not None:
+        if collider is not None:
 
             # for box colliders
-            if self.entity.collider.tag == BoxCollider.tag:
-                self.entity.collider.box.w *= abs(x_scale)
-                self.entity.collider.box.h *= abs(y_scale)
+            if collider.tag == BoxCollider.tag:
+                collider.box.w *= abs(x_scale)
+                collider.box.h *= abs(y_scale)
 
             # circle colliders - use the x scale to scale the radius
-            elif self.entity.collider.tag == CircleCollider.tag:
-                self.entity.collider.radius *= abs(x_scale)
+            elif collider.tag == CircleCollider.tag:
+                collider.radius *= abs(x_scale)
 
             # scale the offsets of the colliders
-            self.entity.collider.offset.x *= x_scale
-            self.entity.collider.offset.y *= y_scale
+            collider.offset.x = x_scale * collider.original_offset.x
+            collider.offset.y = y_scale * collider.original_offset.y
 
 
 # Contains image to render
@@ -154,6 +156,11 @@ class Collider(Component):
         # An offset relative to the transform position associated to the entity
         # that this collider belongs to
         self.offset = Vector2(0.0, 0.0)
+        self.original_offset = Vector2(0, 0)
+
+    def set_offset(self, x, y):
+        self.original_offset = Vector2(x, y)
+        self.offset = Vector2(x, y)
 
 
 class BoxCollider (Collider):
