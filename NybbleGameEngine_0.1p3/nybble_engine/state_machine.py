@@ -20,7 +20,7 @@ class StateMachine:
             for condition in self.conditions:
 
                 # condition failed
-                if not condition:
+                if not condition():
                     return False
             # all conditions evaluated to true
             return True
