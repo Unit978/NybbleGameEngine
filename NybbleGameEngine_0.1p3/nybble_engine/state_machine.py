@@ -17,6 +17,11 @@ class StateMachine(object):
 
         # check to see if the conditions of the transmission all evaluate to true
         def all_conditions_met(self):
+
+            # condition list is empty
+            if not self.conditions:
+                return False
+
             for condition in self.conditions:
 
                 # condition failed
@@ -70,6 +75,23 @@ class StateMachine(object):
     def add_state(self, new_state):
         self.states.append(new_state)
 
+    # Creates a transition from a to b and from b to a
+    def add_bi_transition(self, state_a_name, state_b_name, transition_ab, transition_ba):
+
+        state_a = self.get_state(state_a_name)
+        state_b = self.get_state(state_b_name)
+
+        # failed to find the states
+        if state_a is None or state_b is None:
+            print("Error, invalid state specified")
+            return
+
+        transition_ab.next_state = state_b
+        transition_ba.next_state = state_a
+
+        state_a.add_transition(transition_ab)
+        state_b.add_transition(transition_ba)
+
     def add_transition_from(self, state_a_name, state_b_name, new_transition):
 
         state_a = self.get_state(state_a_name)
@@ -77,6 +99,7 @@ class StateMachine(object):
 
         # failed to find the states
         if state_a is None or state_b is None:
+            print("Error, invalid state specified")
             return
 
         # add a transition from a to b
@@ -118,6 +141,8 @@ class AnimationStateMachine(StateMachine):
 
     # update the animator if there was a change of states
     def state_changed(self):
+
+        print(self.current_state.name)
 
         # set the animation from the new state
         self.animator.set_animation(self.current_state.animation)
