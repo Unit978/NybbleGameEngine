@@ -121,8 +121,8 @@ class PhysicsSystem (System):
                             box_collider_a.surface_friction = collider_a.surface_friction
 
                             # Get the relative collision box positions to their transforms.
-                            get_relative_rect_pos(transform_a.position, box_collider_a.box)
-                            get_relative_rect_pos(transform_b.position, collider_b.box)
+                            get_relative_rect_pos(transform_a.position, box_collider_a)
+                            get_relative_rect_pos(transform_b.position, collider_b)
 
                             # check for collision
                             if PhysicsSystem._circle2box_collision(collider_a, collider_b):
