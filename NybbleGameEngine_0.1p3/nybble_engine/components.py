@@ -108,6 +108,16 @@ class Renderer (Component):
         new_height = src_image.get_height() * abs(y_scale)
         return transform.scale(dst_image, (int(new_width), int(new_height)))
 
+    def set_image(self, image):
+        self.original_image = image
+        self.sprite = image
+
+        xs = self.entity.transform.scale.x
+        ys = self.entity.transform.scale.y
+
+        # scale the the image by the transforms current scale
+        self.entity.transform.scale_by(xs, ys)
+
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
