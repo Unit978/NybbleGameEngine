@@ -230,6 +230,9 @@ class Animator(Component):
         # the current frame from the animation
         self.current_frame_index = 0
 
+        # pause an animation at the current frame
+        self.pause = False
+
     def set_animation(self, new_animation):
 
         self.current_animation = new_animation
@@ -244,7 +247,7 @@ class Animator(Component):
 
         anim = self.current_animation
 
-        if anim is not None:
+        if anim is not None and not self.pause:
 
             num_of_frames = len(anim.frames)
 
