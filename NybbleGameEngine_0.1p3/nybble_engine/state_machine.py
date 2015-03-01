@@ -1,7 +1,7 @@
 
-class StateMachine:
+class StateMachine(object):
 
-    class Transition:
+    class Transition(object):
 
         def __init__(self):
 
@@ -25,12 +25,17 @@ class StateMachine:
             # all conditions evaluated to true
             return True
 
-    class State:
+    class State(object):
         def __init__(self, name="default"):
             self.name = name
 
             # a list of transitions to some other state
             self.transitions = list()
+
+        # The init() is basically like a reset. When there is a transition to a new state
+        # this function automatically called.
+        def init(self):
+            pass
 
         def add_transition(self, new_transition):
             self.transitions.append(new_transition)
