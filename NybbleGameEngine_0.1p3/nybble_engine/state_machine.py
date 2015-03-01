@@ -32,9 +32,9 @@ class StateMachine(object):
             # a list of transitions to some other state
             self.transitions = list()
 
-        # The init() is basically like a reset. When there is a transition to a new state
+        #.When there is a transition to a new state
         # this function automatically called.
-        def init(self):
+        def restart(self):
             pass
 
         def add_transition(self, new_transition):
@@ -64,6 +64,8 @@ class StateMachine(object):
         # go to the next state
         if valid_transition is not None:
             self.current_state = valid_transition.next_state
+            self.current_state.restart()
+            self.state_changed()
 
     def add_state(self, new_state):
         self.states.append(new_state)
@@ -86,3 +88,44 @@ class StateMachine(object):
             if state.name == state_name:
                 return state
         return None
+
+    def set_current_state(self, state_name):
+        for state in self.states:
+            if state.name == state_name:
+                self.current_state = state
+                break
+
+    # Gets called when there was a change of states.
+    # When this is called "current_state" will already have been updated
+    # to the new state.
+    def state_changed(self):
+        pass
+
+
+# A special type of state machine for switching between animations
+class AnimationStateMachine(StateMachine):
+
+    class AnimationState(StateMachine.State):
+        def __init__(self, name, animation):
+            super(AnimationStateMachine.AnimationState, self).__init__(name)
+            self.animation = animation
+
+    def __init__(self, animator):
+        super(AnimationStateMachine, self).__init__()
+
+        # the animator associated for this animation state machine
+        self.animator = animator
+
+    # update the animator if there was a change of states
+    def state_changed(self):
+
+        # set the animation from the new state
+        self.animator.set_animation(self.current_state.animation)
+
+    # update the animator's current animation and the current state
+    def set_current_state(self, state_name):
+        for state in self.states:
+            if state.name == state_name:
+                self.current_state = state
+                self.animator.current_animation = self.current_state.animation
+                break
