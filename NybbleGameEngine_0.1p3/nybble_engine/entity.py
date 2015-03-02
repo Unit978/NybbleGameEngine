@@ -127,13 +127,31 @@ class GameObject (Entity):
         # Set up pivot for the image
         pivot = Vector2(img_width/2, img_height/2)
 
-        self.transform = Transform()
+        self.transform = Transform(Vector2(0, 0))
         self.renderer = Renderer(image_surface, pivot)
         self.collider = components.BoxCollider(img_width, img_height)
 
         self.add_component(self.transform)
         self.add_component(self.renderer)
         self.add_component(self.collider)
+
+
+# create a game object with only a transform and renderer
+class RenderableObject (Entity):
+    def __init__(self, image_surface, uuid=0):
+        super(RenderableObject, self).__init__(uuid)
+
+        img_width = image_surface.get_width()
+        img_height = image_surface.get_height()
+
+        # Set up pivot for the image
+        pivot = Vector2(img_width/2, img_height/2)
+
+        self.transform = Transform(Vector2(0, 0))
+        self.renderer = Renderer(image_surface, pivot)
+
+        self.add_component(self.transform)
+        self.add_component(self.renderer)
 
 
 # A game object with only a transform and collision box components.
