@@ -180,6 +180,14 @@ class BoxCollider (Collider):
         super(BoxCollider, self).__init__()
         self.box = Rect(0, 0, width, height)
 
+        # The tolerance hit box is used because when a collider is resolved, the original hit box , for a short time,
+        # is not colliding with anything. The tolerance hit box takes care of that situation. (objects resting on floor).
+
+        ################################################################################
+        # The physics system does not use this for its calculations yet. When it is later implemented, the tolerance
+        # hit box should only register that it is overlapping.
+        ###############################################################################
+
         self.tolerance = 10
         self.tolerance_hitbox = Rect(0, 0, width+self.tolerance, height+self.tolerance)
 
