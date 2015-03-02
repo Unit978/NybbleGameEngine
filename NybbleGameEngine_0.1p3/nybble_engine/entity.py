@@ -106,6 +106,12 @@ class Entity (object):
     def __eq__(self, other):
         return self.uuid == other.uuid
 
+    def __str__(self):
+        return self.tag + ", " + self.name + ", " + str(self.uuid)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 # A basic game object with a transform, render, box collision, and rigid body components.
 # The image is centered for the render component.
