@@ -113,6 +113,9 @@ class Vector2:
     def __str__(self):
         return "<" + str(self.x) + ", " + str(self.y) + ">"
 
+    def to_tuple(self):
+        return self.x, self.y
+
 
 # centers the rect around position coordinate
 def get_relative_rect_pos(position, collider):
