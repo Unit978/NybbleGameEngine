@@ -180,8 +180,23 @@ class BoxCollider (Collider):
         super(BoxCollider, self).__init__()
         self.box = Rect(0, 0, width, height)
 
+        self.tolerance = 10
+        self.tolerance_hitbox = Rect(0, 0, width+self.tolerance, height+self.tolerance)
+
+        self.tolerance_hitbox.center = (self.offset.to_tuple())
+
     def set_box(self, width, height):
         self.box = Rect(0, 0, width, height)
+        self.tolerance_hitbox = Rect(0, 0, width+self.tolerance, height+self.tolerance)
+        self.tolerance_hitbox.center = (self.offset.to_tuple())
+
+    def scale_box_by(self, x_scale, y_scale):
+
+        self.box.w *= abs(x_scale)
+        self.box.h *= abs(y_scale)
+
+        self.tolerance_hitbox.w *= abs(x_scale)
+        self.tolerance_hitbox.h *= abs(y_scale)
 
 
 class CircleCollider(Collider):
@@ -330,4 +345,9 @@ class BehaviorScript(Script):
     # The physics system calls this function when the belonging
     # entity of this script collides with another entity's collider
     def collision_event(self, other_collider):
+        pass
+
+    # This is called by the Physics system when the entity stops colliding with the other
+    # collider
+    def collision_exit_event(self, other_collider):
         pass
