@@ -90,12 +90,8 @@ class PhysicsSystem (System):
                         # box to box collision
                         if collider_a.tag == BoxCollider.tag and collider_b.tag == BoxCollider.tag:
 
-                            # Get the relative collision box positions to their transforms.
-                            get_relative_rect_pos(transform_a.position, collider_a)
-                            get_relative_rect_pos(transform_b.position, collider_b)
-
                             # check for collision
-                            if collider_a.box.colliderect(collider_b.box):
+                            if PhysicsSystem.box2box_collision(collider_a, collider_b):
                                 collision_occurred = True
 
                                 if rigid_body_a is not None and b_isnt_trigger:
@@ -311,6 +307,19 @@ class PhysicsSystem (System):
 
         overlap_vec = normal_ab * overlap_mag
         transform_a.position -= overlap_vec
+
+    @staticmethod
+    # test if two box colliders are colliding
+    def box2box_collision(collider_a, collider_b):
+
+        # offset the collision boxes relative to their transform positions
+        get_relative_rect_pos(collider_a.entity.transform.position, collider_a)
+        get_relative_rect_pos(collider_b.entity.transform.position, collider_b)
+
+        # check for collision
+        if collider_a.box.colliderect(collider_b.box):
+            return True
+        return False
 
     # determine which side of the box_b did box_a hit
     @staticmethod
