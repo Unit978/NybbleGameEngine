@@ -141,9 +141,6 @@ class AnimationStateMachine(StateMachine):
 
     # update the animator if there was a change of states
     def state_changed(self):
-
-        print(self.current_state.name)
-
         # set the animation from the new state
         self.animator.set_animation(self.current_state.animation)
 
