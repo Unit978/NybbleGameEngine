@@ -1,8 +1,6 @@
 
 from managers import EntityManager
-from entity import GameObject
-from entity import BoxColliderObject
-from entity import CircleColliderObject
+from entity import *
 from systems import *
 
 
@@ -58,6 +56,12 @@ class World (object):
 
     def create_game_object(self, image_surface):
         entity = GameObject(image_surface)
+        entity.world = self
+        self.entity_manager.add(entity)
+        return entity
+
+    def create_renderable_object(self, image_surface):
+        entity = RenderableObject(image_surface)
         entity.world = self
         self.entity_manager.add(entity)
         return entity
