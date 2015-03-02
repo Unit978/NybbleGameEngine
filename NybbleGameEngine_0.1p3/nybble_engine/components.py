@@ -244,8 +244,8 @@ class Animator(Component):
         self.entity.transform.scale_by(x_scale, y_scale)
 
         # change the original image of the renderer to some frame of
-        # the current animation
-        self.entity.renderer.original_image = self.current_animation.frames[0]
+        # the current animation, and also scale it to the current transform's scale
+        self.entity.renderer.original_image = Renderer.scale_image(self.current_animation.frames[0], x_scale, y_scale)
 
     def _update_animation(self):
 
