@@ -42,7 +42,7 @@ class Engine:
         self.gui = Gui(self)
 
         # Create screen display with 32 bits per pixel, no flags set
-        self.display = pygame.display.set_mode((display_w, display_h), 0, 32)
+        self.display = pygame.display.set_mode((display_w, display_h), pygame.HWSURFACE, 32)
         self.delta_time = 0.0
         self.debug = False
         self.paused = False
