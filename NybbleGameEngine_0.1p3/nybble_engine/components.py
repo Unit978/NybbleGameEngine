@@ -58,16 +58,15 @@ class Transform (Component):
 
             # for box colliders
             if collider.tag == BoxCollider.tag:
-                collider.box.w *= abs(x_scale)
-                collider.box.h *= abs(y_scale)
+                collider.scale_box_by(x_scale, y_scale)
 
             # circle colliders - use the x scale to scale the radius
             elif collider.tag == CircleCollider.tag:
                 collider.radius *= abs(x_scale)
 
             # scale the offsets of the colliders
-            collider.offset.x = x_scale * collider.original_offset.x
-            collider.offset.y = y_scale * collider.original_offset.y
+            # collider.offset.x = x_scale * collider.original_offset.x
+            # collider.offset.y = y_scale * collider.original_offset.y
 
 
 # Contains image to render
