@@ -42,15 +42,20 @@ class PhysicsSystem (System):
     ignore_velocity_epsilon = 10
 
     # holds pairs of colliding entities per iteration.
-    collision_queue = deque()
+    collision_queue = list()
+
+    # holds the collisions of the past frame
+    #past_collisions = list()
 
     def __init__(self):
         super(PhysicsSystem, self).__init__()
 
     def process(self, entities):
+        # save the collisions of the past frame
+        #PhysicsSystem.past_collisions = PhysicsSystem.collision_queue[:]
 
         # empty the collision queue
-        PhysicsSystem.collision_queue.clear()
+        del PhysicsSystem.collision_queue[:]
 
         for eA in entities:
 
@@ -137,6 +142,33 @@ class PhysicsSystem (System):
 
                             for s in eB.scripts:
                                 s.collision_event(collider_a)
+
+        # trigger the collision exit event
+        # An exit event means  that the an object is no longer colliding with another.
+        # We can test this by checking the past collisions and seeing if they are NOT
+        # in the current collision event queue.
+        # for past_collision in PhysicsSystem.past_collisions:
+        #     trigger_exit = True
+        #
+        #     for current_collision in PhysicsSystem.collision_queue:
+        #
+        #         # If the collisions are the same then don't trigger collision exit event
+        #         if past_collision == current_collision:
+        #             trigger_exit = False
+        #             break
+        #
+        #     # The inner for loop failed which means that there was a collision exit event
+        #     if trigger_exit and self.world.engine.delta_time > 0.011:
+        #
+        #         eA = past_collision[0]
+        #         eB = past_collision[1]
+        #
+        #         # call the collision exit inside the scripts
+        #         for s in eA.scripts:
+        #             s.collision_exit_event(eB.collider)
+        #
+        #         for s in eB.scripts:
+        #             s.collision_exit_event(eA.collider)
 
     @staticmethod
     def _calc_1d_elastic_collision_velocity(vel_a, mass_a, vel_b, mass_b):
@@ -799,12 +831,16 @@ class RenderSystem (System):
                             y_offset = collider.offset.y
                             box = Rect(x+x_offset, y+y_offset, collider.box.width, collider.box.height)
 
+                            tol = Rect(x+x_offset, y+y_offset, collider.tolerance_hitbox.width, collider.tolerance_hitbox.height)
+                            tol.center = box.center
+
                             # display collider rect properties
                             color = (255, 255, 255)
                             if collider.is_trigger:
                                 color = (0, 255, 255)
 
                             pygame.draw.rect(display, color, box, 1)
+                            pygame.draw.rect(display, (255, 0, 0), tol, 1)
                             pygame.draw.circle(display, (0, 255, 0), box.center, 3)
                             pygame.draw.circle(display, (0, 255, 255), box.topleft, 5)
 
