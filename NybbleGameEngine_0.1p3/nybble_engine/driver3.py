@@ -14,11 +14,15 @@ class InteractionScript(WorldScript):
     def __init__(self, script_name):
         super(WorldScript, self).__init__(script_name)
 
+
     def take_input(self, event):
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             radius = randrange(10, 70)
+
             ball = self.world.create_circle_collider_object(radius)
+            ball.tag = "ball"
+
             ball.add_component(RigidBody())
             ball.collider.restitution = 0.85
             ball.rigid_body.gravity_scale = 1.0
@@ -45,8 +49,13 @@ class InteractionScript(WorldScript):
             y = pygame.mouse.get_pos()[1]
 
             ball.transform.position = Vector2(x, y)
-
             ball.rigid_body.mass = ball.collider.radius * 2
+
+            # s = pygame.Surface((200, 200)).convert()
+            # s.fill((255, 0, 0))
+            #
+            # e = self.world.create_game_object(s)
+            # e.transform.position = Vector2(x, y)
 
 
 class MyWorld(World):
@@ -78,6 +87,8 @@ class MyWorld(World):
         self.background.add_component(Transform(Vector2(0, 0)))
         self.background.add_component(Renderer(background_image))
         self.background.renderer.depth = 100
+
+        self.background.tag = "background"
 
         # make the balls
         # for i in range(0, 8):
