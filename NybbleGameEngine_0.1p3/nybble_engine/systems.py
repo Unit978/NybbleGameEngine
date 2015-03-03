@@ -35,8 +35,6 @@ class PhysicsSystem (System):
     left = 2
     right = 3
 
-    gravity = Vector2(0.0, 500.0)
-
     # This value represents a magnitude of velocity to ignore and treat it as zero
     ignore_velocity_epsilon = 10
 
@@ -48,6 +46,8 @@ class PhysicsSystem (System):
 
     def __init__(self):
         super(PhysicsSystem, self).__init__()
+
+        self.gravity = Vector2(0.0, 500.0)
 
     def process(self, entities):
         # save the collisions of the past frame
@@ -568,7 +568,7 @@ class PhysicsSystem (System):
         transform.position += dt * rigid_body.velocity
 
         # apply gravity
-        rigid_body.velocity += dt * rigid_body.gravity_scale * PhysicsSystem.gravity
+        rigid_body.velocity += dt * rigid_body.gravity_scale * self.gravity
 
 
 # Requires for an entity to have a render and transform component
