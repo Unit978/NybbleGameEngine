@@ -59,6 +59,12 @@ class World (object):
             for s in e.scripts:
                 s.take_input(event)
 
+    def get_entity_by_tag(self, tag):
+        for e in self.entity_manager.entities:
+            if e.tag == tag:
+                return e
+        return None
+
     # create an empty entity (no components)
     def create_entity(self):
         e = self.entity_manager.create_entity()
