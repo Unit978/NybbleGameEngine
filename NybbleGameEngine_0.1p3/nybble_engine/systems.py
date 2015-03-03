@@ -446,7 +446,6 @@ class PhysicsSystem (System):
                 rigid_b.velocity.x *= collider_a.restitution
                 #rigid_a.velocity.y *= collider_b.surface_friction
 
-
             # Invert velocities according to orientation
             rigid_b.velocity.x *= x_change
             rigid_b.velocity.y *= y_change
