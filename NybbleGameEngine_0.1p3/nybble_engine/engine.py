@@ -49,27 +49,36 @@ class Engine:
 
         self.print_fps = False
 
+        self.worlds = list()
+
+        self.game = None
+
     def set_world(self, world):
         world.engine = self
         self.world = world
+        self.world.resume()
 
     def run(self):
 
         timer = pygame.time.Clock()
         last_frame_time = 0.0
 
-        # load the scene of the world before running
-        self.world.start_scene_loading()
+        for world in self.worlds:
 
-        render_system = self.world.get_system(RenderSystem.tag)
+            world.engine = self
 
-        # failed to obtain the render system
-        if render_system is None:
-            print("Error. Render system does not exist in the world.")
-            return
+            # load the scene of the world before running
+            world.start_scene_loading()
 
-        # construct the scene order from the initial entities
-        render_system.construct_scene(self.world.entity_manager.entities)
+            render_system = world.get_system(RenderSystem.tag)
+
+            # failed to obtain the render system
+            if render_system is None:
+                print("Error. Render system does not exist in the world.")
+                return
+
+            # construct the scene order from the initial entities
+            render_system.construct_scene(world.entity_manager.entities)
 
         while True:
 
