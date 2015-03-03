@@ -30,6 +30,17 @@ class World (object):
         self.height = -1
         self.origin = Vector2(0, 0)
 
+        self.loading_scene = False
+
+    # this function is a wrapper that is used to detect if we are loading the scene of the world
+    def start_scene_loading(self):
+        self.loading_scene = True
+
+        # call the overrided scene loading function
+        self.load_scene()
+
+        self.loading_scene = False
+
     @abstractmethod
     def load_scene(self):
         """
@@ -58,12 +69,22 @@ class World (object):
         entity = GameObject(image_surface)
         entity.world = self
         self.entity_manager.add(entity)
+
+        # if the entity was created outside the load_scene then do
+        # a dynamic insertion to the RenderSystem's scene
+        if not self.loading_scene:
+            self.get_system(RenderSystem.tag).dynamic_insertion_to_scene(entity)
+
         return entity
 
     def create_renderable_object(self, image_surface):
         entity = RenderableObject(image_surface)
         entity.world = self
         self.entity_manager.add(entity)
+
+        if not self.loading_scene:
+            self.get_system(RenderSystem.tag).dynamic_insertion_to_scene(entity)
+
         return entity
 
     def create_box_collider_object(self, width, height):
