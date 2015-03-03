@@ -59,7 +59,7 @@ class Engine:
         last_frame_time = 0.0
 
         # load the scene of the world before running
-        self.world.load_scene()
+        self.world.start_scene_loading()
 
         render_system = self.world.get_system(RenderSystem.tag)
 
