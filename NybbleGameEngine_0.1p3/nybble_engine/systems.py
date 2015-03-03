@@ -714,6 +714,7 @@ class RenderSystem (System):
 
     def render_scene(self):
 
+        # paint the screen black to setup the dark environment
         if self.simulate_dark_env:
             self.world.engine.display.fill((0, 0, 0))
 
@@ -746,7 +747,7 @@ class RenderSystem (System):
                 else:
                     print("Renderer has no transform associated.")
 
-        # to simulate light in dark environments
+        # to simulate light sources in dark environments
         if self.simulate_dark_env:
             #self.world.engine.display.blit(self.blit_buffer, (0, 0))
             for light_source in self.light_sources:
@@ -763,114 +764,116 @@ class RenderSystem (System):
                 self.world.engine.display.blit(tmp, (x, y))
 
     def process(self, entities):
-
         self.render_scene()
 
         for e in entities:
-
-            # Obtain the proper components.
-            transform = e.transform
 
             # update the animation for an entity if possible
             animator = e.animator
             if animator is not None:
                 animator._update_animation()
 
-            # Components found.
-            if transform is not None:
-                display = self.world.engine.display
+            if self.world.engine.debug:
+                    self.debug(e)
 
-                # ------- Debug info -------- #
+    def debug(self, e):
 
-                x_origin = self.world.origin.x
-                y_origin = self.world.origin.y
+        transform = e.transform
 
-                # draw collision box
-                if self.world.engine.debug:
+        # if we have nothing to draw on then return
+        if transform is None:
+            return
 
-                    x = transform.position.x
-                    y = transform.position.y
+        display = self.world.engine.display
 
-                    # adjust for the camera
-                    if self.camera is not None:
-                        x -= self.camera.transform.position.x
-                        y -= self.camera.transform.position.y
+        # ------- Debug info -------- #
 
-                    collider = e.collider
-                    rigid_body = e.rigid_body
+        x_origin = self.world.origin.x
+        y_origin = self.world.origin.y
 
-                    # transform origin crosshair
-                    pygame.draw.line(display, (255, 0, 0), (x-50, y), (x+50, y))
-                    pygame.draw.line(display, (255, 0, 0), (x, y-50), (x, y+50))
+        x = transform.position.x
+        y = transform.position.y
 
-                    # draw position vector relative to the world origin
-                    pygame.draw.line(display, (50, 50, 50), (x_origin, y_origin), (x, y))
+        # adjust for the camera
+        if self.camera is not None:
+            x -= self.camera.transform.position.x
+            y -= self.camera.transform.position.y
 
-                    if rigid_body is not None:
+        collider = e.collider
+        rigid_body = e.rigid_body
 
-                        # obtain a fraction of the velocity vector
-                        length = Vector2.get_scaled_by(rigid_body.velocity, 0.2)
-                        xend = x + length.x
-                        yend = y + length.y
+        # transform origin crosshair
+        pygame.draw.line(display, (255, 0, 0), (x-50, y), (x+50, y))
+        pygame.draw.line(display, (255, 0, 0), (x, y-50), (x, y+50))
 
-                        # draw the velocity vector of the rigid
-                        pygame.draw.line(display, (0, 255, 0), (x, y), (xend, yend))
+        # draw position vector relative to the world origin
+        pygame.draw.line(display, (50, 50, 50), (x_origin, y_origin), (x, y))
 
-                        # represent mass
-                        # larger circle means more mass
-                        mass = rigid_body.mass
+        if rigid_body is not None:
 
-                        # scale down the mass
-                        mass /= 4
+            # obtain a fraction of the velocity vector
+            length = Vector2.get_scaled_by(rigid_body.velocity, 0.2)
+            xend = x + length.x
+            yend = y + length.y
 
-                        # mask surface to match the size of the mass circle
-                        transparency_mask = pygame.Surface((mass*2, mass*2))
+            # draw the velocity vector of the rigid
+            pygame.draw.line(display, (0, 255, 0), (x, y), (xend, yend))
 
-                        # fill surface with a color mask and set the color key
-                        color_mask = (123, 54, 33)
-                        transparency_mask.fill(color_mask)
-                        transparency_mask.set_colorkey(color_mask)
+            # represent mass
+            # larger circle means more mass
+            mass = rigid_body.mass
 
-                        # draw circle to the transparency mask
-                        mass = int(mass)
-                        pygame.draw.circle(transparency_mask, (0, 100, 255), (mass, mass), mass)
+            # scale down the mass
+            mass /= 4
 
-                        # change alpha
-                        transparency_mask.set_alpha(100)
+            # mask surface to match the size of the mass circle
+            transparency_mask = pygame.Surface((mass*2, mass*2))
 
-                        # draw transparency mask to the display
-                        display.blit(transparency_mask, (int(x)-mass, int(y)-mass))
+            # fill surface with a color mask and set the color key
+            color_mask = (123, 54, 33)
+            transparency_mask.fill(color_mask)
+            transparency_mask.set_colorkey(color_mask)
 
-                    # box collider
-                    if collider is not None:
+            # draw circle to the transparency mask
+            mass = int(mass)
+            pygame.draw.circle(transparency_mask, (0, 100, 255), (mass, mass), mass)
 
-                        if collider.tag == BoxCollider.tag:
+            # change alpha
+            transparency_mask.set_alpha(100)
 
-                            # get relative position to transform
-                            get_relative_rect_pos(transform.position, collider)
+            # draw transparency mask to the display
+            display.blit(transparency_mask, (int(x)-mass, int(y)-mass))
 
-                            # center the box image
-                            x -= collider.box.width/2
-                            y -= collider.box.height/2
+        # box collider
+        if collider is not None:
 
-                            # render based on the offset of the collider as well
-                            x_offset = collider.offset.x
-                            y_offset = collider.offset.y
-                            box = Rect(x+x_offset, y+y_offset, collider.box.width, collider.box.height)
+            if collider.tag == BoxCollider.tag:
 
-                            tol = Rect(x+x_offset, y+y_offset, collider.tolerance_hitbox.width, collider.tolerance_hitbox.height)
-                            tol.center = box.center
+                # get relative position to transform
+                get_relative_rect_pos(transform.position, collider)
 
-                            # display collider rect properties
-                            color = (255, 255, 255)
-                            if collider.is_trigger:
-                                color = (0, 255, 255)
+                # center the box image
+                x -= collider.box.width/2
+                y -= collider.box.height/2
 
-                            pygame.draw.rect(display, color, box, 1)
-                            pygame.draw.rect(display, (255, 0, 0), tol, 1)
-                            pygame.draw.circle(display, (0, 255, 0), box.center, 3)
-                            pygame.draw.circle(display, (0, 255, 255), box.topleft, 5)
+                # render based on the offset of the collider as well
+                x_offset = collider.offset.x
+                y_offset = collider.offset.y
+                box = Rect(x+x_offset, y+y_offset, collider.box.width, collider.box.height)
 
-                        elif collider.tag == CircleCollider.tag:
-                            radius = collider.radius
-                            pygame.draw.circle(display, (255, 255, 255), (int(x), int(y)), radius, 1)
+                tol = Rect(x+x_offset, y+y_offset, collider.tolerance_hitbox.width, collider.tolerance_hitbox.height)
+                tol.center = box.center
+
+                # display collider rect properties
+                color = (255, 255, 255)
+                if collider.is_trigger:
+                    color = (0, 255, 255)
+
+                pygame.draw.rect(display, color, box, 1)
+                pygame.draw.rect(display, (255, 0, 0), tol, 1)
+                pygame.draw.circle(display, (0, 255, 0), box.center, 3)
+                pygame.draw.circle(display, (0, 255, 255), box.topleft, 5)
+
+            elif collider.tag == CircleCollider.tag:
+                radius = collider.radius
+                pygame.draw.circle(display, (255, 255, 255), (int(x), int(y)), radius, 1)
