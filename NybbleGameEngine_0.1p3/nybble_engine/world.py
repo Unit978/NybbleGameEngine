@@ -48,6 +48,10 @@ class World (object):
         game objects.
         """
 
+    # initiate things when the game goes back to this level
+    def resume(self):
+        pass
+
     # Do not override
     def _take_input(self, event):
 
@@ -120,8 +124,11 @@ class World (object):
         # the last systems to do their logic.
         self.systems.insert(0, system)
 
-    def remove_system(self, system):
-        self.systems.remove(system)
+    def remove_system(self, tag):
+        for system in self.systems:
+            if system.tag == tag:
+                self.systems.remove(system)
+                return
 
     def get_system(self, tag):
         for system in self.systems:
