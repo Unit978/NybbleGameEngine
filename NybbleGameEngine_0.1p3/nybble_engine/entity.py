@@ -25,6 +25,8 @@ class Entity (object):
         self.collider = None
         self.animator = None
 
+        self.disabled = False
+
     def add_component(self, component):
 
         # link the component
