@@ -588,6 +588,13 @@ class RenderSystem (System):
         # Set up display for rendering.
         self.camera = None
 
+        self.blit_buffer = None
+        self.light_sources = list()
+
+        # This tells the render system to fill the screen black and set up lighting effects
+        # in a dark environment.
+        self.simulate_dark_env = False
+
     # for utility to create a solid image surface of some color
     @staticmethod
     def create_solid_image(width, height, color):
@@ -707,6 +714,9 @@ class RenderSystem (System):
 
     def render_scene(self):
 
+        if self.simulate_dark_env:
+            self.world.engine.display.fill((0, 0, 0))
+
         # Iterate through each layer in the scene in order
         for layer in self.ordered_layers:
 
@@ -726,11 +736,31 @@ class RenderSystem (System):
                     if self.camera is not None and not renderer.is_static:
                         position -= self.camera.transform.position
 
-                    display = self.world.engine.display
-                    display.blit(renderer.sprite, (position.x, position.y))
+                    # render to the buffer first if we want to simulate a dark environment
+                    if self.simulate_dark_env:
+                        self.blit_buffer.blit(renderer.sprite, (position.x, position.y))
+                    else:
+                        display = self.world.engine.display
+                        display.blit(renderer.sprite, (position.x, position.y))
 
                 else:
                     print("Renderer has no transform associated.")
+
+        # to simulate light in dark environments
+        if self.simulate_dark_env:
+            #self.world.engine.display.blit(self.blit_buffer, (0, 0))
+            for light_source in self.light_sources:
+
+                x = light_source.transform.position.x
+                y = light_source.transform.position.y
+
+                # blit relative to the camera and center it around the light-renderer's center
+                x -= self.camera.transform.position.x + light_source.renderer.sprite.get_width()/2
+                y -= self.camera.transform.position.y + light_source.renderer.sprite.get_height()/2
+
+                tmp = light_source.renderer.sprite.copy()
+                tmp.blit(self.blit_buffer, (-x, -y), special_flags=pygame.BLEND_RGBA_MIN)
+                self.world.engine.display.blit(tmp, (x, y))
 
     def process(self, entities):
 
