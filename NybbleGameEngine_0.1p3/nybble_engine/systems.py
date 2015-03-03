@@ -638,12 +638,10 @@ class RenderSystem (System):
             # layer already exists
             if depth in self.scene:
                 self.scene[depth].append(renderer)
-                print("layer existed")
 
             # create new layer and re-sort
             else:
                 self.scene[depth] = [renderer]
-                print("layer has not existed")
 
                 # find where this new layers belongs in the layer order
                 i = 0
