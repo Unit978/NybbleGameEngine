@@ -3,7 +3,6 @@ from abc import abstractmethod
 
 from components import *
 from util_math import get_relative_rect_pos
-from collections import deque
 
 import pygame
 
@@ -639,17 +638,19 @@ class RenderSystem (System):
             # layer already exists
             if depth in self.scene:
                 self.scene[depth].append(renderer)
+                print("layer existed")
 
             # create new layer and re-sort
             else:
                 self.scene[depth] = [renderer]
+                print("layer has not existed")
 
                 # find where this new layers belongs in the layer order
                 i = 0
                 for layer in self.ordered_layers:
 
                     # found where to insert the depth
-                    if layer > depth:
+                    if layer < depth:
                         self.ordered_layers.insert(i, depth)
                         return
                     i += 1
@@ -711,9 +712,7 @@ class RenderSystem (System):
         # Iterate through each layer in the scene in order
         for layer in self.ordered_layers:
 
-            renderer_list = self.scene[layer]
-
-            for renderer in renderer_list:
+            for renderer in self.scene[layer]:
 
                 # access the transform
                 entity = renderer.entity
