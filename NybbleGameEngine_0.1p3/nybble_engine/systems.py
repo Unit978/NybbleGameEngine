@@ -58,6 +58,10 @@ class PhysicsSystem (System):
 
         for eA in entities:
 
+            # ignore disabled entities
+            if eA.disabled:
+                continue
+
             transform_a = eA.transform
             collider_a = eA.collider
             rigid_body_a = eA.rigid_body
@@ -78,6 +82,9 @@ class PhysicsSystem (System):
 
                 # Find another entity that it may collide with
                 for eB in entities:
+
+                    if eB.disabled:
+                        continue
 
                     transform_b = eB.transform
                     collider_b = eB.collider
@@ -724,6 +731,9 @@ class RenderSystem (System):
 
                 # access the transform
                 entity = renderer.entity
+                if entity.disabled:
+                    continue
+
                 transform = entity.transform
 
                 # transform exists
@@ -766,6 +776,9 @@ class RenderSystem (System):
         self.render_scene()
 
         for e in entities:
+
+            if e.disabled:
+                continue
 
             # update the animation for an entity if possible
             animator = e.animator
