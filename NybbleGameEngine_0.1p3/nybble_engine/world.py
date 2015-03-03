@@ -130,6 +130,15 @@ class World (object):
     def remove_script(self, script):
         self.scripts.remove(script)
 
+    def get_script(self, script_name):
+        i = 0
+        for s in self.scripts:
+            # script found
+            if s.script_name == script_name:
+                return s
+            i += 1
+        return None
+
     # Have each system process the entities
     def run(self):
         for s in self.systems:
