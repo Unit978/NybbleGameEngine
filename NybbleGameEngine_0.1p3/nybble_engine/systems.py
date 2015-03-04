@@ -48,6 +48,7 @@ class PhysicsSystem (System):
         super(PhysicsSystem, self).__init__()
 
         self.gravity = Vector2(0.0, 500.0)
+        self.terminal_speed = 800
 
     def process(self, entities):
         # save the collisions of the past frame
@@ -568,7 +569,9 @@ class PhysicsSystem (System):
         transform.position += dt * rigid_body.velocity
 
         # apply gravity
-        rigid_body.velocity += dt * rigid_body.gravity_scale * self.gravity
+        # limit acceleration due to terminal velocity
+        if rigid_body.velocity.sq_magnitude() < self.terminal_speed * self.terminal_speed:
+            rigid_body.velocity += dt * rigid_body.gravity_scale * self.gravity
 
 
 # Requires for an entity to have a render and transform component
