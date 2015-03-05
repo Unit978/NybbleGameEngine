@@ -360,6 +360,29 @@ class PhysicsSystem (System):
             return True
         return False
 
+    # test if the tolerance hitboxes of the entities overlap
+    @staticmethod
+    def tolerance_collision(collider_a, collider_b):
+
+        result = False
+
+        temp_box_a = collider_a.box
+        temp_box_b = collider_b.box
+
+        # use the tolerance hit boxes to detect collision
+        collider_a.box = collider_a.tolerance_hitbox
+        collider_b.box = collider_b.tolerance_hitbox
+
+        # use the tolerance hit boxes to detect collision
+        if PhysicsSystem.box2box_collision(collider_a, collider_b):
+            result = True
+
+        # # reset the collider boxes to the original ones
+        collider_a.box = temp_box_a
+        collider_b.box = temp_box_b
+
+        return result
+
     # determine which side of the box_b did box_a hit
     @staticmethod
     def calc_box_hit_orientation(collider_a, collider_b):
@@ -747,33 +770,92 @@ class RenderSystem (System):
 
                     # Offset image position with the camera if the renderer is not static
                     if self.camera is not None and not renderer.is_static:
+
                         position -= self.camera.transform.position
 
-                    # render to the buffer first if we want to simulate a dark environment
-                    if self.simulate_dark_env:
-                        self.blit_buffer.blit(renderer.sprite, (position.x, position.y))
+                        render_rect = renderer.sprite.get_rect().copy()
+
+                        # center the rect around its transform
+                        render_rect.topleft = (position.x, position.y)
+
+                        # obtain camera data, topleft corner coordinates, width, and height
+                        cx = self.camera.transform.position.x
+                        cy = self.camera.transform.position.y
+
+                        # FIX, have width and height be a permanent location for the engine
+                        # such as having it as variables for the camera object.
+                        cw = self.camera.get_script("camera follow").width
+                        ch = self.camera.get_script("camera follow").height
+
+                        camera_rect = Rect(cx, cy, cw, ch)
+
+                        # adjust with camera movement
+                        render_rect.x += cx
+                        render_rect.y += cy
+
+                        # if the sprite rect is colliding with the camera's rect
+                        # then blit
+                        if camera_rect.colliderect(render_rect):
+                            # render to the buffer first if we want to simulate a dark environment
+                            if self.simulate_dark_env:
+                                self.blit_buffer.blit(renderer.sprite, (position.x, position.y))
+
+                            # render to the screen
+                            else:
+                                display = self.world.engine.display
+                                display.blit(renderer.sprite, (position.x, position.y))
+
+                    # if there is no camera just blit directly to the buffer
                     else:
-                        display = self.world.engine.display
-                        display.blit(renderer.sprite, (position.x, position.y))
+                        # render to the buffer first if we want to simulate a dark environment
+                        if self.simulate_dark_env:
+                            self.blit_buffer.blit(renderer.sprite, (position.x, position.y))
+
+                        # render to the screen
+                        else:
+                            display = self.world.engine.display
+                            display.blit(renderer.sprite, (position.x, position.y))
 
                 else:
                     print("Renderer has no transform associated.")
 
         # to simulate light sources in dark environments
         if self.simulate_dark_env:
-            #self.world.engine.display.blit(self.blit_buffer, (0, 0))
+
             for light_source in self.light_sources:
+
+                # obtain camera data, topleft corner coordinates, width, and height
+                cx = self.camera.transform.position.x
+                cy = self.camera.transform.position.y
+
+                # FIX, have width and height be a permanent location for the engine
+                # such as having it as variables for the camera object.
+                cw = self.camera.get_script("camera follow").width
+                ch = self.camera.get_script("camera follow").height
+
+                camera_rect = Rect(cx, cy, cw, ch)
 
                 x = light_source.transform.position.x
                 y = light_source.transform.position.y
 
-                # blit relative to the camera and center it around the light-renderer's center
-                x -= self.camera.transform.position.x + light_source.renderer.sprite.get_width()/2
-                y -= self.camera.transform.position.y + light_source.renderer.sprite.get_height()/2
+                light_rect = light_source.renderer.sprite.get_rect().copy()
 
-                tmp = light_source.renderer.sprite.copy()
-                tmp.blit(self.blit_buffer, (-x, -y), special_flags=pygame.BLEND_RGBA_MIN)
-                self.world.engine.display.blit(tmp, (x, y))
+                # blit relative to the camera and center it around the light-renderer's center
+                x -= cx + light_rect.w/2
+                y -= cy + light_rect.h/2
+
+                # center the rect around its relative position to the camera
+                light_rect.topleft = (x, y)
+
+                # adjust the position with the moving camera
+                light_rect.x += cx
+                light_rect.y += cy
+
+                # if the camera rect is within the camera then blit buffer onto the light source
+                if camera_rect.colliderect(light_rect):
+                    tmp = light_source.renderer.sprite.copy()
+                    tmp.blit(self.blit_buffer, (-x, -y), special_flags=pygame.BLEND_RGBA_MIN)
+                    self.world.engine.display.blit(tmp, (x, y))
 
     def process(self, entities):
         self.render_scene()
