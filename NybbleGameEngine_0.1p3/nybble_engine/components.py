@@ -65,8 +65,8 @@ class Transform (Component):
                 collider.radius *= abs(x_scale)
 
             # scale the offsets of the colliders
-            # collider.offset.x = x_scale * collider.original_offset.x
-            # collider.offset.y = y_scale * collider.original_offset.y
+            collider.offset.x = x_scale * collider.original_offset.x
+            collider.offset.y = y_scale * collider.original_offset.y
 
 
 # Contains image to render
