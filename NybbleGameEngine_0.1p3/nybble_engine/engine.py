@@ -91,7 +91,7 @@ class Engine:
             frame_start_time = pygame.time.get_ticks()
 
             if self.print_fps:
-                print("delta time: ", self.delta_time, " FPS: ", timer.get_fps())
+                print("FPS: ", timer.get_fps(), "delta time: ", self.delta_time)
 
             if self.world is None:
                 print("Error, the world specified is None.")
