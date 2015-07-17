@@ -143,6 +143,8 @@ class MyWorld(World):
 
         self.add_script(InteractionScript("interaction"))
 
-
-engine.set_world(MyWorld())
+# Run game
+w = MyWorld()
+engine.set_world(w)
+engine.worlds.append(w)
 engine.run()

@@ -331,8 +331,8 @@ class BreakoutWorld (World):
         self.leftWall.tag = "wall"
         self.rightWall.tag = "wall"
 
-
-breakout_engine.set_world(BreakoutWorld())
-
-# run game
+# Run game
+b = BreakoutWorld()
+breakout_engine.set_world(b)
+breakout_engine.worlds.append(b)
 breakout_engine.run()
