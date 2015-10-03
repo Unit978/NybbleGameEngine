@@ -157,13 +157,15 @@ class World (object):
         for s in self.systems:
             s.process(self.entity_manager.entities)
 
-        # run script updates
-        for e in self.entity_manager.entities:
+        # Run script updates - Reverse iteration to handle removals of entities.
+        for i in xrange(len(self.entity_manager.entities) - 1, -1, -1):
+            e = self.entity_manager.entities[i]
             for s in e.scripts:
                 s.update()
 
-        # world scripts
-        for s in self.scripts:
+        # World scripts - Reverse iteration to handle removals of entities.
+        for i in xrange(len(self.scripts)-1, -1, -1):
+            s = self.scripts[i]
             s.update()
 
     # determine if the world has bounds
