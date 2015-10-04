@@ -140,14 +140,14 @@ class GameObject (Entity):
 
 # create a game object with only a transform and renderer
 class RenderableObject (Entity):
-    def __init__(self, image_surface, uuid=0):
+    def __init__(self, image_surface, pivot=None, uuid=0):
         super(RenderableObject, self).__init__(uuid)
 
         img_width = image_surface.get_width()
         img_height = image_surface.get_height()
 
         # Set up pivot for the image
-        pivot = Vector2(img_width/2, img_height/2)
+        pivot = Vector2(0, 0) if pivot is None else Vector2(img_width/2, img_height/2)
 
         self.transform = Transform(Vector2(0, 0))
         self.renderer = Renderer(image_surface, pivot)

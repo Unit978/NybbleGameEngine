@@ -87,8 +87,8 @@ class World (object):
 
         return entity
 
-    def create_renderable_object(self, image_surface):
-        entity = RenderableObject(image_surface)
+    def create_renderable_object(self, image_surface, pivot=None):
+        entity = RenderableObject(image_surface, pivot)
         entity.world = self
         self.entity_manager.add(entity)
 

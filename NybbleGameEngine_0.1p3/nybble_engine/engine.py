@@ -53,10 +53,13 @@ class Engine:
 
         self.game = None
 
-    def set_world(self, world):
+    def set_world(self, world, append=False):
         world.engine = self
         self.world = world
         self.world.resume()
+
+        if append:
+            self.worlds.append(world)
 
     def run(self):
 
