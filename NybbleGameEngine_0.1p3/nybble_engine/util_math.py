@@ -80,7 +80,7 @@ class Vector2:
     # Uses the angle between i-unit vector and x-y vector component
     def direction(self):
         r = acos(self.x / self.magnitude())
-        if self.y > 0:
+        if self.y < 0:
             r *= -1
         return r
 
@@ -88,9 +88,10 @@ class Vector2:
     def set_direction(self, direction):
         m = self.magnitude()
         self.x = m * cos(direction)
+        self.y = m * sin(direction)
 
-        y_temp = m * sin(direction)
-        self.y = -y_temp if self.y > 0 else y_temp
+        # y_temp = m * sin(direction)
+        # self.y = -y_temp if self.y > 0 else y_temp
 
     # Dot product of two vectors
     def dot(self, other):
