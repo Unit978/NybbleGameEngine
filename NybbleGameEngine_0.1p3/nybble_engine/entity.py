@@ -147,7 +147,7 @@ class RenderableObject (Entity):
         img_height = image_surface.get_height()
 
         # Set up pivot for the image
-        pivot = Vector2(0, 0) if pivot is None else Vector2(img_width/2, img_height/2)
+        pivot = Vector2(img_width/2, img_height/2) if pivot is None else Vector2(0, 0)
 
         self.transform = Transform(Vector2(0, 0))
         self.renderer = Renderer(image_surface, pivot)
