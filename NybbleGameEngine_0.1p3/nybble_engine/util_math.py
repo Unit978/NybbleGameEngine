@@ -39,6 +39,15 @@ class Vector2:
     def __div__(self, scale):
         return self.__mul__(1/scale)
 
+    def __hash__(self):
+        return self.x * 100001 + self.y
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    def __ne__(self, other):
+        return not self == other
+
     def scale_by(self, s):
         self.x *= s
         self.y *= s
