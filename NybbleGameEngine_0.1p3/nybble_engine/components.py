@@ -117,6 +117,10 @@ class Renderer (Component):
         # scale the the image by the transforms current scale
         self.entity.transform.scale_by(xs, ys)
 
+    def set_color(self, color):
+        self.original_image.fill(color)
+        self.sprite.fill(color)
+
 
 # Only holds velocity vector and mass scalar, may be expanded in future development
 # for a better physics simulations
