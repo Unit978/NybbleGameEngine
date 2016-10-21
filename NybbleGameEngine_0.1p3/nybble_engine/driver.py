@@ -40,7 +40,7 @@ wall_hit_sound.set_volume(0.5)
 mixer.music.load("assets/music/back_music.mp3")
 
 
-# ---------------------------------- scripts ---------------------------------- #
+# ---------------------------------- scripts -------------------------------- #
 class BallBehavior (BehaviorScript):
 
     def __init__(self, script_name):
