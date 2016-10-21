@@ -98,6 +98,7 @@ class PhysicsSystem (System):
                         # A flag to tell the physics systems not to apply physics or collision
                         # resolution on the entity if this collider collides with another collider.
                         b_isnt_trigger = not collider_b.is_trigger
+                        a_isnt_trigger = not collider_a.is_trigger
 
                         # box to box collision
                         if collider_a.tag == BoxCollider.tag and collider_b.tag == BoxCollider.tag:
@@ -106,7 +107,7 @@ class PhysicsSystem (System):
                             if PhysicsSystem.box2box_collision(collider_a, collider_b):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and b_isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger and a_isnt_trigger:
                                     PhysicsSystem.box2box_response(collider_a, collider_b)
 
                         # circle to circle collision
@@ -116,7 +117,7 @@ class PhysicsSystem (System):
                             if PhysicsSystem._circle2circle_collision(collider_a, collider_b):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and b_isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger and a_isnt_trigger:
                                     PhysicsSystem.circle2circle_response(collider_a, collider_b)
 
                         # circle to box
@@ -136,7 +137,7 @@ class PhysicsSystem (System):
                             if PhysicsSystem._circle2box_collision(collider_a, collider_b):
                                 collision_occurred = True
 
-                                if rigid_body_a is not None and b_isnt_trigger:
+                                if rigid_body_a is not None and b_isnt_trigger and a_isnt_trigger:
                                     PhysicsSystem.box2box_response(box_collider_a, collider_b)
 
                         if collision_occurred:
