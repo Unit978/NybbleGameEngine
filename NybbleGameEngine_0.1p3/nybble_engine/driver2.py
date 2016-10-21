@@ -5,7 +5,8 @@ from engine import *
 from entity import *
 from components import BehaviorScript
 
-from math import sin
+from math import sin, sqrt
+from random import uniform
 
 engine = Engine(1200, 700)
 
@@ -59,12 +60,13 @@ class Shoot(BehaviorScript):
     def __init__(self, script_name):
         super(Shoot, self).__init__(script_name)
 
-        self.firing_rate = 0.5
+        self.firing_rate = 0.1
         self.firing_timer = 0.0
 
         self.target = None
 
         self.bullet_speed = 300
+        self.blue = RenderSystem.create_solid_image(5, 5, (0, 50, 255))
 
     def update(self):
 
@@ -79,18 +81,36 @@ class Shoot(BehaviorScript):
             self.fire()
             self.firing_timer = 0.0
 
-    def fire(self):
+    def setup_bullet(self):
 
-        blue = RenderSystem.create_solid_image(5, 5, (0, 50, 255))
-        bullet = self.entity.world.create_game_object(blue)
+        bullet = self.entity.world.create_game_object(self.blue)
         bullet.add_component(RigidBody())
         bullet.add_script(Life("life", 2.0))
 
         pos = self.entity.transform.position
         bullet.transform.position = Vector2(pos.x, pos.y)
+        bullet.collider.is_trigger = True
+        return bullet
 
-        to_target = Vector2.get_normal(self.target.transform.position - pos)
-        bullet.rigid_body.velocity = to_target * self.bullet_speed
+    def fire(self):
+
+        bullet = self.setup_bullet()
+
+        bullet.rigid_body.velocity = self.target_lead() * self.bullet_speed
+
+        b_vel = bullet.rigid_body.velocity
+        angle = b_vel.direction()
+
+        bullet2 = self.setup_bullet()
+        bullet2.rigid_body.velocity = Vector2(b_vel.x, b_vel.y)
+        bullet2.rigid_body.velocity.set_direction(angle + 0.1)
+
+        bullet3 = self.setup_bullet()
+        bullet3.rigid_body.velocity = Vector2(b_vel.x, b_vel.y)
+        bullet3.rigid_body.velocity.set_direction(angle - 0.1)
+
+        angle = bullet.rigid_body.velocity.direction()
+        bullet.rigid_body.velocity.set_direction(angle + uniform(-0.1, 0.1))
 
     def target_lead(self):
 
@@ -98,7 +118,26 @@ class Shoot(BehaviorScript):
         transform = self.entity.transform
 
         # The displacement between the game object and the target
-        to_target_disp = target.transform.position - transform.position
+        d = target.transform.position - transform.position
+
+        vt = target.rigid_body.velocity
+
+        a = vt.dot(vt) - self.bullet_speed * self.bullet_speed
+        b = 2.0 * d.dot(vt)
+        c = d.dot(d)
+
+        discriminant = b * b - 4 * a * c
+
+        if discriminant >= 0:
+            t = (-b - sqrt(discriminant)) / (2 * a)
+
+            future = d + vt * t
+
+            return Vector2.get_normal(future)
+
+        # Impossible to hit
+        else:
+            return None
 
 
 class ShootingRange(World):
