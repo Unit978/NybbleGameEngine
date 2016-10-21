@@ -55,25 +55,32 @@ class Vector2:
     # Return copy of a scaled version of the vector
     @staticmethod
     def get_scaled_by(vector2, s):
-        return Vector2(vector2.x*s, vector2.y*s)
+        return Vector2(vector2.x * s, vector2.y * s)
 
     def normalize(self):
         m = self.magnitude()
-        self.x /= m
-        self.y /= m
+
+        # Avoid division by zero.
+        if m == 0:
+            self.x = 0
+            self.y = 0
+
+        else:
+            self.x /= m
+            self.y /= m
 
     # Return a copy of the normalized vector
     @staticmethod
     def get_normal(vector2):
         m = vector2.magnitude()
-        return Vector2(vector2.x/m, vector2.y/m)
+        return Vector2(vector2.x / m, vector2.y / m)
 
     def magnitude(self):
-        return sqrt(self.x*self.x + self.y*self.y)
+        return sqrt(self.x * self.x + self.y * self.y)
 
     # Squared magnitude
     def sq_magnitude(self):
-        return self.x*self.x + self.y*self.y
+        return self.x * self.x + self.y * self.y
 
     def set_magnitude(self, mag):
         # Use properties of similar triangles
